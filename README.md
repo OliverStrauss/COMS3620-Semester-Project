@@ -1,31 +1,36 @@
-#GROUP MEMBERS: Oliver Strauss, Shea Kiester, Caleb Sanchez, Alex Black, Jake Nickel. 
+# COMS 3620 Semester Project
 
+## Group Members
 
-#Rough Plan of things Needed:
-    Department : Use cases
+- Oliver Strauss
+- Shea Kiester
+- Caleb Sanchez
+- Alex Black
+- Jake Nickel
 
-    Talent Relations : Sign Wrestler, Renew Contract, Release Wrestler, Promote to Main Roster
-    
-    Creative : Book Match, Award Championship, Plan Storyline
+## Rough Plan of Things Needed
 
-    Live Events : Schedule Events, Book Venue, Cancel Events
+| Department | Use Cases |
+|---|---|
+| Talent Relations | Sign Wrestler, Renew Contract, Release Wrestler, Promote to Main Roster |
+| Creative | Book Match, Award Championship, Plan Storyline |
+| Live Events | Schedule Events, Book Venue, Cancel Events |
+| TV Shows | Record Match Live, Sell PPV, Different Shows |
+| Ticketing | Sell Tickets, Refund Ticket, Generate Attendance Report |
+| Merchandise | Sell Merchandise, Restock Merchandise, Action Figure Deals? |
+| Medical | Record Injury, Clear Wrestler to Compete, Insurance? |
+| Finance | Pay Talent, Record Sponsorship Deal, Generate Event Revenue Report |
 
-    TV Shows : Record match live, sell PPV, Different shows
+## Iteration 1
 
-    Ticketing : Sell Tickets, Refund Ticket, Generate Attendance Report
+**Due:** Wednesday, Nov 4 in class
 
-    Merchandise : Sell Merchandise,Restock Merchandise,Action Figure deals?
+1 use case per person:
 
-    Medical : Record Injury, Clear Wrestler to Compete, Insurance?
-
-    Finance : Pay Talent, Record Sponsorship Deal, Generate Event Revenue Report
-
-
-#Iteration 1:
-    Due on Wednesday, Nov 4 in class
-    1 Use case per person:
-    Oliver 
-    Caleb
-    Jake
-    Alex
-    Shea
+| Member | Use Case |
+|---|---|
+| Oliver | |
+| Caleb | |
+| Jake | |
+| Alex | |
+| Shea | |
