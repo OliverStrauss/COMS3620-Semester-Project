@@ -8,6 +8,20 @@
 - Alex Black
 - Jake Nickel
 
+File system
+Root
+|  Data
+|  |-Wrestlers.txt
+|  |-Events.txt
+|  |- .
+|     .
+|     .
+|  |- OTHERS.TXT
+|  SRC
+|  |-Main.java
+|
+
+
 ## Rough Plan of Things Needed
 
 | Department | Use Cases |
@@ -21,15 +35,27 @@
 | Medical | Record Injury, Clear Wrestler to Compete, Insurance? |
 | Finance | Pay Talent, Record Sponsorship Deal, Generate Event Revenue Report |
 
+
+#Possible Use Cases
+|---|---|
+| A Sign Wrestler	
+| B	Schedule Event
+| C	Book Match	
+| D	Sell Tickets	
+| E	Sell Merchandise
+
 ## Iteration 1
 
 **Due:** Wednesday, Nov 4 in class
+
+WHAT WE NEED
+
 
 1 use case per person:
 
 | Member | Use Case |
 |---|---|
-| Oliver | |
+| Oliver |A(Sign Wrestler Use Case)|
 | Caleb | |
 | Jake | |
 | Alex | |
