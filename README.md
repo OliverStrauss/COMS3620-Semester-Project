@@ -50,6 +50,13 @@ Root
 
 ### What We Need
 
+Possible Class Models Needed:
+Wrestler.java,
+Contract.java,
+Events.java,
+Venue.java,
+Ticket.java
+
 1 use case per person:
 
 | Member | Use Case |
