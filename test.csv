@@ -1,0 +1,5 @@
+ID,Name,Role,Notes
+1,John Doe,Developer,Regular text row, 1.25
+2,"Smith, Jane",Manager,"Handles commas, inside quotes"
+3,Bob Johnson,QA,"Enjoys ""automation"" testing"
+4,Alice Williams,Designer,"Quote at start: ""Hello"" world"
