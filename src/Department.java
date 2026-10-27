@@ -60,6 +60,18 @@ public abstract class Department {
         }
     }
 
+    // Asks until the user types something that isn't blank. Returns it trimmed
+    // Pressing enter gives defaultValue, unless it's null
+    protected static String askText(Scanner in, String prompt, String defaultValue) {
+        while (true) {
+            System.out.print(prompt);
+            String input = in.nextLine().trim();
+            if (!input.isEmpty()) return input;
+            if (defaultValue != null) return defaultValue;
+            System.out.println("Please enter something.");
+        }
+    }
+
     // Asks until the user types a date as YYYY-MM-DD. Pressing enter gives defaultDate, unless it's null
     protected static LocalDate askDate(Scanner in, String prompt, LocalDate defaultDate) {
         while (true) {

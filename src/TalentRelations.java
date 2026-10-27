@@ -13,11 +13,25 @@ public class TalentRelations extends Department {
         super("Talent Relations");
     }
 
+    /**
+     * Wrestler Managment
+     *  Sign Wrestler
+     *  Promote Wrestler
+     *  Release Wrestler
+     *  Change Brand
+     *  View
+     * Contract Managemnt
+     *  Create Contract
+     *  Renew Contract
+     *  View Contracts
+     */
+
     @Override
     protected List<String> getUseCases() {
         return List.of("Sign Wrestler",
         "Release Wrestler",
         "Promote to Main Roster",
+        "View Wrestlers",
         "Renew Contract",
         "Create Contract",
         "View Contracts"
@@ -30,22 +44,39 @@ public class TalentRelations extends Department {
             case 0 -> signWrestler(in);
             case 1 -> releaseWrestler(in);
             case 2 -> promoteToMainRoster(in);
-            case 3 -> renewContract(in);
-            case 4 -> createContract(in);
-            case 5 -> viewContracts(in);
+            case 3 -> viewWrestlers(in);
+            case 4 -> renewContract(in);
+            case 5 -> createContract(in);
+            case 6 -> viewContracts(in);
              
         }
     }
 
+    /**
+     * String legalName, String ringName, Brand brand, Status status) {
+     */
+
     private void signWrestler(Scanner in) {
-        System.out.println("Sign Wrestler is not implemented yet.");
+        String legalName = askText(in,"Enter wrestlers legal name ","Jonny da");
+        String stageName = askText(in,"Enter wrestlers Stage name ","Wrestler");
+        Wrestler.Brand brand = askBrand(in);
+        Wrestler.Status status = Wrestler.Status.ACTIVE;
+        saveNewWrestler(legalName,stageName,brand,status);
+
+
 
 
     }
 
     private void createContract(Scanner in) {
-        // TODO: check the wrestler exists once Wrestlers.txt is set up
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID: ", null));
+        Wrestler wrestler = Wrestler.findById(wrestlerId);
+        if (wrestler == null) {
+            System.out.println("No wrestler with ID " + wrestlerId + ".");
+            return;
+        }
+        System.out.println("Contract for: " + wrestler);
+
         long salary = askPositiveLong(in, "Yearly salary: ", null);
         LocalDate start = askDate(in, "Start date (YYYY-MM-DD, enter for today): ", LocalDate.now());
         LocalDate end = askEndDate(in, start);
@@ -96,9 +127,20 @@ public class TalentRelations extends Department {
         }
     }
 
+    private void saveNewWrestler(String legalName, String stageName, Wrestler.Brand brand, Wrestler.Status status) {
+    // Get the ID last, so bad input never uses one up
+    Wrestler wrestler = new Wrestler(IdGenerator.nextId(Wrestler.FILE), legalName, stageName, brand, status);
+    try {
+        CsvWriter.appendRow(Wrestler.FILE, wrestler.toRow());
+        System.out.println("Created" + wrestler);
+    } catch (IOException e) {
+        System.out.println("Could not save wrestler: " + e.getMessage());
+    }
+    }
 
 
-     private void viewContracts(Scanner in) {
+
+    private void viewContracts(Scanner in) {
         List<Contract> contracts = Contract.loadAll();
         if (contracts.isEmpty()) {
             System.out.println("No contracts yet.");
@@ -108,12 +150,46 @@ public class TalentRelations extends Department {
         }
     }
 
+    private void viewWrestlers(Scanner in) {
+        List<Wrestler> wrestlers = Wrestler.loadAll();
+        if (wrestlers.isEmpty()) {
+            System.out.println("No contracts yet.");
+        }
+        for (Wrestler w : wrestlers) {
+            System.out.println(w);
+        }
+    }
+
     private void releaseWrestler(Scanner in) {
         System.out.println("Release Wrestler is not implemented yet.");
     }
 
     private void promoteToMainRoster(Scanner in) {
         System.out.println("Promote to Main Roster is not implemented yet.");
+    }
+
+    // Lists every brand as a numbered choice and asks until the user picks one
+    private Wrestler.Brand askBrand(Scanner in) {
+        return askOption(in, "Brand", Wrestler.Brand.values());
+    }
+
+    // Lists every status as a numbered choice and asks until the user picks one
+    private Wrestler.Status askStatus(Scanner in) {
+        return askOption(in, "Status", Wrestler.Status.values());
+    }
+
+    // Shared by askBrand and askStatus: works for any enum's values()
+    private <E> E askOption(Scanner in, String label, E[] options) {
+        while (true) {
+            System.out.println(label + ":");
+            for (int i = 0; i < options.length; i++) {
+                System.out.println("  " + (i + 1) + ". " + options[i]);
+            }
+            System.out.print("Pick a number: ");
+            int choice = parseChoice(in.nextLine().trim(), options.length);
+            if (choice >= 0) return options[choice];
+            System.out.println("Invalid choice.");
+        }
     }
 
 }
