@@ -1,4 +1,6 @@
+import java.io.File;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,6 +74,25 @@ public class Contract {
                 LocalDate.parse(String.valueOf(row.get(4))));
     }
 
+    // Every contract in the file. Empty list if the file doesn't exist yet
+    public static List<Contract> loadAll() {
+        List<Contract> contracts = new ArrayList<>();
+        if (!new File(FILE).exists()) return contracts; // CsvParser prints an error for missing files
+        for (ArrayList<Object> row : CsvParser.parsecsv(FILE)) {
+            if (row.get(0) == null) continue; // blank line
+            contracts.add(fromRow(row));
+        }
+        return contracts;
+    }
+
+    // The contract with this ID, or null if there isn't one
+    public static Contract findById(int id) {
+        for (Contract c : loadAll()) {
+            if (c.getId() == id) return c;
+        }
+        return null;
+    }
+
     // Fields in file order, ready for CsvWriter
     public List<Object> toRow() {
         return List.of(
@@ -80,5 +101,14 @@ public class Contract {
                 yearlySalary,
                 startDate,
                 endDate);
+    }
+
+    // Readable form for printing, like: Contract #1 | Wrestler #1 | $2,500,000/yr | 2026-11-01 to 2029-08-15
+    @Override
+    public String toString() {
+
+       
+        return String.format("Contract #%d | Wrestler #%d | $%,d/yr | %s to %s",
+                id, wrestlerId, yearlySalary, startDate, endDate);
     }
 }
