@@ -64,5 +64,5 @@ Ticket.java
 | Oliver | A (Sign Wrestler) |
 | Caleb | |
 | Jake | |
-| Alex | |
+| Alex |Ticketing|
 | Shea | Medical |
