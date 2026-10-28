@@ -93,6 +93,14 @@ public class Contract {
         return null;
     }
 
+    // True if this wrestler has a contract active on the given date
+    public static boolean hasActiveContract(int wrestlerId, LocalDate date) {
+        for (Contract c : loadAll()) {
+            if (c.getWrestlerId() == wrestlerId && c.isActiveOn(date)) return true;
+        }
+        return false;
+    }
+
     // Fields in file order, ready for CsvWriter
     public List<Object> toRow() {
         return List.of(

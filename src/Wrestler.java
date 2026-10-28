@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,14 @@ import java.util.List;
 public class Wrestler {
     public static final String FILE = "Data/Wrestlers.txt";
 
-    public enum Brand { RAW, SMACKDOWN, NXT }
+    public enum Brand {
+        RAW, SMACKDOWN, NXT;
+
+        // NXT is developmental, everything else is main roster
+        public boolean isMainRoster() {
+            return this != NXT;
+        }
+    }
 
     public enum Status { ACTIVE, INJURED, RELEASED }
 
@@ -49,6 +57,19 @@ public class Wrestler {
 
     public Status getStatus() {
         return status;
+    }
+
+    public void setBrand(Brand brand) {
+        this.brand = brand;
+    }
+
+    // Rewrites the whole file. Use after changing a wrestler from loadAll()
+    public static void saveAll(List<Wrestler> wrestlers) throws IOException {
+        List<List<Object>> rows = new ArrayList<>();
+        for (Wrestler w : wrestlers) {
+            rows.add(w.toRow());
+        }
+        CsvWriter.writeAll(FILE, rows);
     }
 
 
@@ -98,7 +119,7 @@ public class Wrestler {
 
     @Override
     public String toString() {
-        return String.format("WrestlerID #%d | LegalName %s | Brand %s | Staus %s",
+        return String.format("WrestlerID #%d | LegalName %s | Brand %s | Status %s",
                 id, legalName, ringName, brand.toString(), status.toString());
     }
 }

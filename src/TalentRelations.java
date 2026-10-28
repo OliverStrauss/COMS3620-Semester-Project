@@ -164,8 +164,53 @@ public class TalentRelations extends Department {
         System.out.println("Release Wrestler is not implemented yet.");
     }
 
+    // Moves an NXT wrestler up to a main roster brand
     private void promoteToMainRoster(Scanner in) {
-        System.out.println("Promote to Main Roster is not implemented yet.");
+        List<Wrestler> wrestlers = Wrestler.loadAll();
+        boolean anyNxt = false;
+        for (Wrestler w : wrestlers) {
+            if (!w.getBrand().isMainRoster()) {
+                System.out.println(w);
+                anyNxt = true;
+            }
+        }
+        if (!anyNxt) {
+            System.out.println("No NXT wrestlers to promote.");
+            return;
+        }
+
+        int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID to promote: ", null));
+        // Edit the wrestler from this list, so saveAll writes the change back
+        Wrestler wrestler = null;
+        for (Wrestler w : wrestlers) {
+            if (w.getId() == wrestlerId) wrestler = w;
+        }
+        if (wrestler == null) {
+            System.out.println("No wrestler with ID " + wrestlerId + ".");
+            return;
+        }
+        if (wrestler.getBrand().isMainRoster()) {
+            System.out.println(wrestler.getRingName() + " is already on the main roster.");
+            return;
+        }
+        if (wrestler.getStatus() != Wrestler.Status.ACTIVE) {
+            System.out.println(wrestler.getRingName() + " is " + wrestler.getStatus() + " and can't be promoted.");
+            return;
+        }
+        if (!Contract.hasActiveContract(wrestlerId, LocalDate.now())) {
+            System.out.println(wrestler.getRingName() + " needs an active contract to be promoted.");
+            return;
+        }
+
+        Wrestler.Brand brand = askOption(in, "Promote to",
+                new Wrestler.Brand[]{Wrestler.Brand.RAW, Wrestler.Brand.SMACKDOWN});
+        wrestler.setBrand(brand);
+        try {
+            Wrestler.saveAll(wrestlers);
+            System.out.println("Promoted " + wrestler.getRingName() + " to " + brand + ".");
+        } catch (IOException e) {
+            System.out.println("Could not save wrestler: " + e.getMessage());
+        }
     }
 
     // Lists every brand as a numbered choice and asks until the user picks one
