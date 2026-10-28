@@ -65,4 +65,4 @@ Ticket.java
 | Caleb | |
 | Jake | |
 | Alex | |
-| Shea | |
+| Shea | Medical |
