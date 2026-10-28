@@ -62,7 +62,7 @@ Ticket.java
 | Member | Use Case |
 |---|---|
 | Oliver |Talent Relations|
-| Caleb | |
-| Jake | |
+| Caleb |Live Events|
+| Jake |TV events|
 | Alex |Ticketing|
 | Shea | Medical |
