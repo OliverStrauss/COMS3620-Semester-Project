@@ -119,7 +119,7 @@ public class Wrestler {
 
     @Override
     public String toString() {
-        return String.format("WrestlerID #%d | LegalName %s | Brand %s | Status %s",
-                id, legalName, ringName, brand.toString(), status.toString());
+        return String.format("WrestlerID #%d | LegalName %s | StageName %s | Brand %s | Status %s",
+                 id,legalName, ringName, brand.toString(), status.toString());
     }
 }
