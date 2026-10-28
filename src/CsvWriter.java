@@ -22,7 +22,7 @@ public class CsvWriter {
         }
         return line.toString();
     }
-
+    //Used as helper for other functions
     private static String escape(Object value) {
         if (value == null) return "";
         String s = value.toString();
@@ -73,7 +73,7 @@ public class CsvWriter {
         Files.writeString(p, text);
     }
 
-    //for testing: writes rows, reads them back with CsvParser, and checks they match
+    //for testing:
     public static void main(String args[]) throws IOException {
         String path = "csvwriter_test.csv";
         List<List<Object>> rows = List.of(

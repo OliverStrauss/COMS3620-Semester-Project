@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -38,6 +40,49 @@ public abstract class Department {
                 continue;
             }
             runUseCase(choice, in);
+        }
+    }
+
+    // Asks until the user types a whole number above 0. Commas are allowed, like 2,500,000
+    // Pressing enter gives defaultValue, unless it's null
+    protected static long askPositiveLong(Scanner in, String prompt, Long defaultValue) {
+        while (true) {
+            System.out.print(prompt);
+            String input = in.nextLine().trim().replace(",", "");
+            if (input.isEmpty() && defaultValue != null) return defaultValue;
+            try {
+                long n = Long.parseLong(input);
+                if (n > 0) return n;
+            } catch (NumberFormatException e) {
+                // fall through to the error message
+            }
+            System.out.println("Please enter a whole number above 0.");
+        }
+    }
+
+    // Asks until the user types something that isn't blank. Returns it trimmed
+    // Pressing enter gives defaultValue, unless it's null
+    protected static String askText(Scanner in, String prompt, String defaultValue) {
+        while (true) {
+            System.out.print(prompt);
+            String input = in.nextLine().trim();
+            if (!input.isEmpty()) return input;
+            if (defaultValue != null) return defaultValue;
+            System.out.println("Please enter something.");
+        }
+    }
+
+    // Asks until the user types a date as YYYY-MM-DD. Pressing enter gives defaultDate, unless it's null
+    protected static LocalDate askDate(Scanner in, String prompt, LocalDate defaultDate) {
+        while (true) {
+            System.out.print(prompt);
+            String input = in.nextLine().trim();
+            if (input.isEmpty() && defaultDate != null) return defaultDate;
+            try {
+                return LocalDate.parse(input);
+            } catch (DateTimeParseException e) {
+                System.out.println("Please enter a date as YYYY-MM-DD.");
+            }
         }
     }
 
