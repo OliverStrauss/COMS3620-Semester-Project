@@ -61,7 +61,7 @@ Ticket.java
 
 | Member | Use Case |
 |---|---|
-| Oliver | A (Sign Wrestler) |
+| Oliver |Talent Relations|
 | Caleb | |
 | Jake | |
 | Alex |Ticketing|
