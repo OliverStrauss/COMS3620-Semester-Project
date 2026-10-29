@@ -34,15 +34,7 @@ Root
 | Medical | Record Injury, Clear Wrestler to Compete, Insurance? |
 | Finance | Pay Talent, Record Sponsorship Deal, Generate Event Revenue Report |
 
-## Possible Use Cases
 
-| ID | Use Case |
-|---|---|
-| A | Sign Wrestler |
-| B | Schedule Event |
-| C | Book Match |
-| D | Sell Tickets |
-| E | Sell Merchandise |
 
 ## Iteration 1
 
