@@ -1,2 +1,0 @@
-1,Connor,holloway,NXT,ACTIVE
-2,Jonny da,Wrestler,RAW,RELEASED

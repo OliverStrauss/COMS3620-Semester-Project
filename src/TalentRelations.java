@@ -152,7 +152,7 @@ public class TalentRelations extends Department {
 
     private void saveNewWrestler(String legalName, String stageName, Wrestler.Brand brand, Wrestler.Status status) {
     // Get the ID last, so bad input never uses one up
-    Wrestler wrestler = new Wrestler(IdGenerator.nextId(Wrestler.FILE), legalName, stageName, brand, status);
+    Wrestler wrestler = new Wrestler(IdGenerator.nextId(Wrestler.FILE), legalName, stageName, brand, status, true); // new signings start medically cleared
     try {
         CsvWriter.appendRow(Wrestler.FILE, wrestler.toRow());
         System.out.println("Created " + wrestler);
