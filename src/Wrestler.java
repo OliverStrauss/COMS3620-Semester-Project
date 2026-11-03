@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A wrestler has id, legalName, ringName, brand and status.
+ * A wrestler has id, legalName, ringName, brand, status and medicalClearance.
  * Each one is a line in Data/Wrestlers.txt,
- * like 1,John Smith,The Hammer,RAW,ACTIVE.
+ * like 1,John Smith,The Hammer,RAW,ACTIVE,true.
  */
 public class Wrestler {
     public static final String FILE = "Data/Wrestlers.txt";
@@ -29,14 +29,16 @@ public class Wrestler {
 
     private Brand brand;
     private Status status;
+    private boolean medicalClearance;
 
-    public Wrestler(int id, String legalName, String ringName, Brand brand, Status status) {
+    public Wrestler(int id, String legalName, String ringName, Brand brand, Status status, boolean medicalClearance) {
         // TODO: validate (names not blank, brand and status not null)
         this.id = id;
         this.legalName = legalName;
         this.ringName = ringName;
         this.brand = brand;
         this.status = status;
+        this.medicalClearance = medicalClearance;
     }
 
     public int getId() {
@@ -59,8 +61,20 @@ public class Wrestler {
         return status;
     }
 
+    public boolean hasMedicalClearance() {
+        return medicalClearance;
+    }
+
     public void setBrand(Brand brand) {
         this.brand = brand;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setMedicalClearance(boolean medicalClearance) {
+        this.medicalClearance = medicalClearance;
     }
 
     // Rewrites the whole file. Use after changing a wrestler from loadAll()
@@ -93,17 +107,18 @@ public class Wrestler {
         return null;
     }
 
-    // Builds a wrestler from one CsvParser row, like [1, John Smith, The Hammer, RAW, ACTIVE]
+    // Builds a wrestler from one CsvParser row, like [1, John Smith, The Hammer, RAW, ACTIVE, true]
     public static Wrestler fromRow(List<Object> row) {
-         if (row.size() != 5) {
-            throw new IllegalArgumentException("Bad contract row: " + row);
+         if (row.size() != 6) {
+            throw new IllegalArgumentException("Bad wrestler row: " + row);
         }
         return new Wrestler(
                 Integer.parseInt(String.valueOf(row.get(0))),
                 String.valueOf(row.get(1)),
                 String.valueOf(row.get(2)),
                 Brand.valueOf(String.valueOf(row.get(3))),
-                Status.valueOf(String.valueOf(row.get(4)))
+                Status.valueOf(String.valueOf(row.get(4))),
+                Boolean.parseBoolean(String.valueOf(row.get(5)))
         );    
     }
 
@@ -114,12 +129,13 @@ public class Wrestler {
                 legalName,
                 ringName,
                 brand,
-                status);
+                status,
+                medicalClearance);
     }
 
     @Override
     public String toString() {
-        return String.format("WrestlerID #%d | LegalName %s | StageName %s | Brand %s | Status %s",
-                 id,legalName, ringName, brand.toString(), status.toString());
+        return String.format("WrestlerID #%d | LegalName %s | StageName %s | Brand %s | Status %s | Cleared %b",
+                 id,legalName, ringName, brand.toString(), status.toString(), medicalClearance);
     }
 }
