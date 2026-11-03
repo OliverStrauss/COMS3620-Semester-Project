@@ -28,7 +28,7 @@ Root
 | Talent Relations | Sign Wrestler, Renew Contract, Release Wrestler, Promote to Main Roster |
 | Creative | Book Match, Award Championship, Plan Storyline |
 | Live Events | Schedule Events, Book Venue, Cancel Events |
-| TV Shows | Record Match Live, Sell PPV, Different Shows |
+| Broadcasting | Record Match Live, Sell PPV, Different Shows |
 | Ticketing | Sell Tickets, Refund Ticket, Generate Attendance Report |
 | Merchandise | Sell Merchandise, Restock Merchandise, Action Figure Deals? |
 | Medical | Record Injury, Clear Wrestler to Compete, Insurance? |
