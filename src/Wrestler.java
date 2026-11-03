@@ -63,6 +63,10 @@ public class Wrestler {
         this.brand = brand;
     }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     // Rewrites the whole file. Use after changing a wrestler from loadAll()
     public static void saveAll(List<Wrestler> wrestlers) throws IOException {
         List<List<Object>> rows = new ArrayList<>();
@@ -96,7 +100,7 @@ public class Wrestler {
     // Builds a wrestler from one CsvParser row, like [1, John Smith, The Hammer, RAW, ACTIVE]
     public static Wrestler fromRow(List<Object> row) {
          if (row.size() != 5) {
-            throw new IllegalArgumentException("Bad contract row: " + row);
+            throw new IllegalArgumentException("Bad wrestler row: " + row);
         }
         return new Wrestler(
                 Integer.parseInt(String.valueOf(row.get(0))),
