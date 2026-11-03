@@ -1,0 +1,4 @@
+1,Monday Night Raw,RAW,1,Monday,20:00,180
+2,Friday Night SmackDown,SMACKDOWN,2,Friday,20:00,120
+3,NXT,NXT,3,Tuesday,20:00,120
+4,Main Event,RAW,1,Monday,21:00,60
