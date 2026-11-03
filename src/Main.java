@@ -4,7 +4,8 @@ import java.util.Scanner;
 public class Main {
     // Add each new Department subclass here
     private static final List<Department> DEPARTMENTS = List.of(
-            new TalentDepartment()
+            new TalentDepartment(),
+            new Ticketing()
     );
 
     public static void main(String[] args) {
