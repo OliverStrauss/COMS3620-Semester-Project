@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Scanner;
 
 
-public class TalentRelations extends Department {
+public class TalentDepartment extends Department {
    
     //Wrestler  = {id(int), legalName(String), ringName(String), brand(Enum), status(Enum)}
 
-    public TalentRelations() {
+    public TalentDepartment() {
       
         super("Talent Relations");
     }
