@@ -60,6 +60,23 @@ public abstract class Department {
         }
     }
 
+    // Asks until the user types a whole number above -1. Commas are allowed, like 2,500,000
+    // Pressing enter gives defaultValue, unless it's null
+    protected static long askNonNegativeLong(Scanner in, String prompt, Long defaultValue) {
+        while (true) {
+            System.out.print(prompt);
+            String input = in.nextLine().trim().replace(",", "");
+            if (input.isEmpty() && defaultValue != null) return defaultValue;
+            try {
+                long n = Long.parseLong(input);
+                if (n > -1) return n;
+            } catch (NumberFormatException e) {
+                // fall through to the error message
+            }
+            System.out.println("Please enter a whole number above -1.");
+        }
+    }
+
     // Asks until the user types something that isn't blank. Returns it trimmed
     // Pressing enter gives defaultValue, unless it's null
     protected static String askText(Scanner in, String prompt, String defaultValue) {
