@@ -1,4 +1,7 @@
+// @author Caleb Sanchez
+
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,31 +9,60 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * A live event at a venue on a date. showId is the TV show it's taped for,
- * or null for events that aren't part of a weekly show (like a PPV).
- * Each one is a line in Data/Events.txt, like 1,Raw - Boston,2026-11-09,1,1,0.
- *
- * Stand-in until the Live Events teammate (Caleb) adds his Event class.
- * The TV code needs getId(), getName(), getDate(), getShowId(), isUpcoming(),
- * findById() and getUpcomingForShow(), so his version should keep those.
+ * An event has id, name, type, brand, date, city, venueId, showId, costCents and status.
+ * Each is a line within Data/Events.txt
+ * venueId is 0 when no venue is held. showId is empty unless a TV show tapes it.
  */
 public class Event {
     public static final String FILE = "Data/Events.txt";
 
+    public enum Type {
+        WEEKLY_TV(8000, 6_500_000),
+        PREMIUM_LIVE_EVENT(15000, 10_000_000),
+        HOUSE_SHOW(2000, 1_000_000);
+
+        private final int minCapacity;
+        private final long budgetCents;
+
+        Type(int minCapacity, long budgetCents) {
+            this.minCapacity = minCapacity;
+            this.budgetCents = budgetCents;
+        }
+
+        public int getMinCapacity() {
+            return minCapacity;
+        }
+
+        public long getBudgetCents() {
+            return budgetCents;
+        }
+    }
+
+    public enum Status { DRAFT, PENDING_APPROVAL, SCHEDULED }
+
     private final int id;
     private final String name;
+    private final Type type;
+    private final Wrestler.Brand brand;
     private final LocalDate date;
-    private final int venueId;
+    private final String city;
     private final Integer showId;
-    private final int ppvPrice;
+    private int venueId;
+    private long costCents;
+    private Status status;
 
-    public Event(int id, String name, LocalDate date, int venueId, Integer showId, int ppvPrice) {
+    public Event(int id, String name, Type type, Wrestler.Brand brand, LocalDate date, String city,
+                 int venueId, Integer showId, long costCents, Status status) {
         this.id = id;
         this.name = name;
+        this.type = type;
+        this.brand = brand;
         this.date = date;
+        this.city = city;
         this.venueId = venueId;
         this.showId = showId;
-        this.ppvPrice = ppvPrice;
+        this.costCents = costCents;
+        this.status = status;
     }
 
     public int getId() {
@@ -45,45 +77,47 @@ public class Event {
         return date;
     }
 
-    public int getVenueId() {
-        return venueId;
-    }
-
-    // null if this event isn't for a weekly show
     public Integer getShowId() {
         return showId;
     }
 
-    public int getPpvPrice() {
-        return ppvPrice;
+    public Status getStatus() {
+        return status;
     }
 
-    // True if the event is after today
     public boolean isUpcoming() {
         return date.isAfter(LocalDate.now());
     }
 
-    // Every event in the file. Empty list if the file doesn't exist yet
-    public static List<Event> loadAll() {
-        List<Event> events = new ArrayList<>();
-        if (!new File(FILE).exists()) return events; // CsvParser prints an error for missing files
-
-        for (ArrayList<Object> row : CsvParser.parsecsv(FILE)) {
-            if (row.get(0) == null) continue; // blank line
-            events.add(fromRow(row));
-        }
-        return events;
+    public boolean hasPassed() {
+        return date.isBefore(LocalDate.now());
     }
 
-    // The event with this ID, or null if there isn't one
-    public static Event findById(int id) {
+    public void schedule() {
+        status = Status.SCHEDULED;
+    }
+
+    // Finance rejected it, so give the venue back
+    public void revertToDraft() {
+        status = Status.DRAFT;
+        venueId = 0;
+        costCents = 0;
+    }
+
+    public static boolean brandHasEventOn(Wrestler.Brand brand, LocalDate date) {
         for (Event e : loadAll()) {
-            if (e.getId() == id) return e;
+            if (e.status != Status.DRAFT && e.brand == brand && e.date.equals(date)) return true;
         }
-        return null;
+        return false;
     }
 
-    // Events for this show that haven't happened yet, soonest first
+    public static boolean venueBookedOn(int venueId, LocalDate date) {
+        for (Event e : loadAll()) {
+            if (e.venueId == venueId && e.date.equals(date)) return true;
+        }
+        return false;
+    }
+
     public static List<Event> getUpcomingForShow(int showId) {
         List<Event> upcoming = new ArrayList<>();
         for (Event e : loadAll()) {
@@ -95,29 +129,61 @@ public class Event {
         return upcoming;
     }
 
-    // Builds an event from one CsvParser row, like [1, Raw - Boston, 2026-11-09, 1, 1, 0]
-    public static Event fromRow(List<Object> row) {
-        if (row.size() != 6) {
-            throw new IllegalArgumentException("Bad event row: " + row);
+    public static Event findById(int id) {
+        for (Event e : loadAll()) {
+            if (e.getId() == id) return e;
         }
-        Object showCell = row.get(4); // empty cell comes back as null
-        return new Event(
-                Integer.parseInt(String.valueOf(row.get(0))),
-                String.valueOf(row.get(1)),
-                LocalDate.parse(String.valueOf(row.get(2))),
-                Integer.parseInt(String.valueOf(row.get(3))),
-                showCell == null ? null : Integer.parseInt(String.valueOf(showCell)),
-                Integer.parseInt(String.valueOf(row.get(5))));
+        return null;
     }
 
-    // Fields in file order, ready for CsvWriter. Arrays.asList because showId can be null
+    public static List<Event> loadAll() {
+        List<Event> events = new ArrayList<>();
+        if (!new File(FILE).exists()) return events;
+
+        for (ArrayList<Object> row : CsvParser.parsecsv(FILE)) {
+            if (row.get(0) == null) continue;
+            events.add(fromRow(row));
+        }
+        return events;
+    }
+
+    public static void saveAll(List<Event> events) throws IOException {
+        List<List<Object>> rows = new ArrayList<>();
+        for (Event e : events) {
+            rows.add(e.toRow());
+        }
+        CsvWriter.writeAll(FILE, rows);
+    }
+
+    public static Event fromRow(List<Object> row) {
+        if (row.size() != 10) {
+            throw new IllegalArgumentException("Bad event row in data: " + row);
+        }
+        Object showCell = row.get(7);
+        return new Event(
+            Integer.parseInt(String.valueOf(row.get(0))),
+            String.valueOf(row.get(1)),
+            Type.valueOf(String.valueOf(row.get(2))),
+            Wrestler.Brand.valueOf(String.valueOf(row.get(3))),
+            LocalDate.parse(String.valueOf(row.get(4))),
+            String.valueOf(row.get(5)),
+            Integer.parseInt(String.valueOf(row.get(6))),
+            showCell == null ? null : Integer.valueOf(String.valueOf(showCell)),
+            ((Number) row.get(8)).longValue(),
+            Status.valueOf(String.valueOf(row.get(9)))
+        );
+    }
+
+    // Arrays.asList because showId can be null
     public List<Object> toRow() {
-        return Arrays.asList(id, name, date, venueId, showId, ppvPrice);
+        return Arrays.asList(id, name, type, brand, date, city, venueId, showId, costCents, status);
     }
 
     @Override
     public String toString() {
-        return String.format("Event #%d | %s | %s | Venue #%d | Show %s",
-                id, name, date, venueId, showId == null ? "none" : "#" + showId);
+        return String.format("Event #%d | %s | %s | %s | %s | %s | Venue %s | Cost %s of %s budget | %s",
+            id, name, type, brand, date, city, venueId == 0 ? "none" : "#" + venueId,
+            Venue.dollars(costCents), Venue.dollars(type.getBudgetCents()), status
+        );
     }
 }
