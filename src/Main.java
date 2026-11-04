@@ -4,9 +4,14 @@ import java.util.Scanner;
 public class Main {
     // Add each new Department subclass here
     private static final List<Department> DEPARTMENTS = List.of(
+
+
+            new TVShows(),
+
             new TalentDepartment(),
             new Ticketing(),
             MedicalDepartment.getInstance()
+
     );
 
     public static void main(String[] args) {

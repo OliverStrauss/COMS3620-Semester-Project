@@ -1,0 +1,7 @@
+1,Raw - Boston,2026-11-09,1,1,0
+2,SmackDown - Chicago,2026-11-13,2,2,0
+3,NXT - Orlando,2026-11-10,3,3,0
+4,Raw - Des Moines,2026-11-16,4,1,0
+5,Raw - Detroit,2026-10-26,5,1,0
+6,Main Event - Boston,2026-11-09,1,4,0
+7,Survivor Series,2026-11-28,6,,4999
