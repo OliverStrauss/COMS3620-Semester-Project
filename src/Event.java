@@ -77,6 +77,10 @@ public class Event {
         return date;
     }
 
+    public int getVenueId() {
+        return venueId;
+    }
+
     public Integer getShowId() {
         return showId;
     }
@@ -121,7 +125,7 @@ public class Event {
     public static List<Event> getUpcomingForShow(int showId) {
         List<Event> upcoming = new ArrayList<>();
         for (Event e : loadAll()) {
-            if (e.getShowId() != null && e.getShowId() == showId && e.isUpcoming()) {
+            if (e.getShowId() != null && e.getShowId() == showId && e.status == Status.SCHEDULED && e.isUpcoming()) {
                 upcoming.add(e);
             }
         }

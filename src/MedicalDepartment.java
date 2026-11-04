@@ -234,11 +234,13 @@ public class MedicalDepartment extends Department {
             }
         }
 
+        // Medical never undoes a release; a released wrestler only has their clearance tracked
+        boolean released = wrestler.getStatus() == Wrestler.Status.RELEASED;
         if (currentlyInjured) {
-            wrestler.setStatus(Wrestler.Status.INJURED);
+            if (!released) wrestler.setStatus(Wrestler.Status.INJURED);
             wrestler.setMedicalClearance(false);
         } else {
-            wrestler.setStatus(Wrestler.Status.ACTIVE);
+            if (!released) wrestler.setStatus(Wrestler.Status.ACTIVE);
             wrestler.setMedicalClearance(true);
         }
 
