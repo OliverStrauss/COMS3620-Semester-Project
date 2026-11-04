@@ -103,6 +103,20 @@ public abstract class Department {
         }
     }
 
+    // Lists each option as a numbered choice and asks until the user picks one
+    protected static <E> E askOption(Scanner in, String label, E[] options) {
+        while (true) {
+            System.out.println(label + ":");
+            for (int i = 0; i < options.length; i++) {
+                System.out.println("  " + (i + 1) + ". " + options[i]);
+            }
+            System.out.print("Pick a number: ");
+            int choice = parseChoice(in.nextLine().trim(), options.length);
+            if (choice >= 0) return options[choice];
+            System.out.println("Invalid choice.");
+        }
+    }
+
     // Returns 0-based index, or -1 if input isn't a number in 1..max
     public static int parseChoice(String input, int max) {
         try {

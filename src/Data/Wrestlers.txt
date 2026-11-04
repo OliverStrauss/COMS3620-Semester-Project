@@ -1,0 +1,16 @@
+1,Oliver,Olliver the Destroyer,RAW,ACTIVE,true
+2,Marcus Reed,The Titan,RAW,ACTIVE,true
+3,Lena Cho,Lightning Lena,SMACKDOWN,ACTIVE,true
+4,Darius Cole,Dark Horse Darius,RAW,ACTIVE,true
+5,Sofia Ramirez,La Tormenta,SMACKDOWN,ACTIVE,true
+6,Grant Mercer,The Iron Giant,RAW,ACTIVE,true
+7,Priya Nair,Priya the Phoenix,NXT,ACTIVE,true
+8,Tyler Brooks,Trailblazer Tyler,NXT,INJURED,false
+9,Kenji Watanabe,The Silent Storm,SMACKDOWN,ACTIVE,true
+10,Nadia Volkova,The Ice Queen,RAW,ACTIVE,true
+11,Jamal Carter,Big Jam,SMACKDOWN,INJURED,false
+12,Owen Fletcher,Rowdy Owen,NXT,ACTIVE,true
+13,Maya Lindqvist,Valkyrie Maya,NXT,ACTIVE,true
+14,Victor Hale,Viper Victor,RAW,RELEASED,true
+15,Bianca Torres,Bulletproof Bianca,SMACKDOWN,ACTIVE,true
+16,Cody Marsh,The Prospect,NXT,ACTIVE,true

@@ -45,6 +45,14 @@ public class Venue {
         return !Event.venueBookedOn(id, date);
     }
 
+    // The venue with this ID, or null if there isn't one
+    public static Venue findById(int id) {
+        for (Venue v : loadAll()) {
+            if (v.getId() == id) return v;
+        }
+        return null;
+    }
+
     public static List<Venue> findAvailable(String city, LocalDate date, int minCapacity) {
         List<Venue> matches = new ArrayList<>();
         for (Venue v : loadAll()) {

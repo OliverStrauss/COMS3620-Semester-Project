@@ -4,42 +4,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A ticket has id, eventName, buyerName, section, price and purchaseDate.
+ * A ticket has id, eventId, buyerName, section, price and purchaseDate.
  * Each one is a line in Data/Tickets.txt,
- * like 1,WrestleMania,Jane Smith,FLOOR,150,2026-11-04.
+ * like 1,3,Jane Smith,FLOOR,150,2026-11-04.
  */
 public class Ticket {
     public static final String FILE = "Data/Tickets.txt";
 
-    // Capacities are small so a sold out section is easy to show in the demo
+    // Each section gets a percent of the venue's seats. The percents add up to 100
     public enum Section {
-        FLOOR(150, 5), LOWER_BOWL(90, 10), UPPER_BOWL(45, 20);
+        FLOOR(150, 5), LOWER_BOWL(90, 35), UPPER_BOWL(45, 60);
 
         private final long price;
-        private final int capacity;
+        private final int percentOfVenue;
 
-        Section(long price, int capacity) {
+        Section(long price, int percentOfVenue) {
             this.price = price;
-            this.capacity = capacity;
+            this.percentOfVenue = percentOfVenue;
         }
 
         public long getPrice() {
             return price;
         }
 
-        public int getCapacity() {
-            return capacity;
+        public int getCapacity(Venue venue) {
+            return venue.getCapacity() * percentOfVenue / 100;
         }
     }
 
     private final int id;
-    private final String eventName;
+    private final int eventId;
     private final String buyerName;
     private final Section section;
     private final long price;
     private final LocalDate purchaseDate;
 
-    public Ticket(int id, String eventName, String buyerName, Section section, long price, LocalDate purchaseDate) {
+    public Ticket(int id, int eventId, String buyerName, Section section, long price, LocalDate purchaseDate) {
         if (price <= 0) {
             throw new IllegalArgumentException("Price must be positive");
         }
@@ -47,7 +47,7 @@ public class Ticket {
             throw new IllegalArgumentException("Section and purchase date are required");
         }
         this.id = id;
-        this.eventName = eventName;
+        this.eventId = eventId;
         this.buyerName = buyerName;
         this.section = section;
         this.price = price;
@@ -58,8 +58,8 @@ public class Ticket {
         return id;
     }
 
-    public String getEventName() {
-        return eventName;
+    public int getEventId() {
+        return eventId;
     }
 
     public String getBuyerName() {
@@ -78,14 +78,14 @@ public class Ticket {
         return purchaseDate;
     }
 
-    // Builds a ticket from one CsvParser row, like [1, WrestleMania, Jane Smith, FLOOR, 150, 2026-11-04]
+    // Builds a ticket from one CsvParser row, like [1, 3, Jane Smith, FLOOR, 150, 2026-11-04]
     public static Ticket fromRow(List<Object> row) {
         if (row.size() != 6) {
             throw new IllegalArgumentException("Bad ticket row: " + row);
         }
         return new Ticket(
                 Integer.parseInt(String.valueOf(row.get(0))),
-                String.valueOf(row.get(1)),
+                Integer.parseInt(String.valueOf(row.get(1))),
                 String.valueOf(row.get(2)),
                 Section.valueOf(String.valueOf(row.get(3))),
                 Long.parseLong(String.valueOf(row.get(4))),
@@ -103,30 +103,32 @@ public class Ticket {
         return tickets;
     }
 
-    // Seats still open in this section for this event
-    public static int seatsLeft(String eventName, Section section) {
+    // Seats still open in this section for this event. 0 if the event's venue isn't in the file
+    public static int seatsLeft(Event event, Section section) {
+        Venue venue = Venue.findById(event.getVenueId());
+        if (venue == null) return 0;
         int sold = 0;
         for (Ticket t : loadAll()) {
-            if (t.getEventName().equalsIgnoreCase(eventName) && t.getSection() == section) sold++;
+            if (t.getEventId() == event.getId() && t.getSection() == section) sold++;
         }
-        return section.getCapacity() - sold;
+        return section.getCapacity(venue) - sold;
     }
 
     // Fields in file order, ready for CsvWriter
     public List<Object> toRow() {
         return List.of(
                 id,
-                eventName,
+                eventId,
                 buyerName,
                 section,
                 price,
                 purchaseDate);
     }
 
-    // Readable form for printing, like: Ticket #1 | WrestleMania | Jane Smith | FLOOR | $150 | 2026-11-04
+    // Readable form for printing, like: Ticket #1 | Event #3 | Jane Smith | FLOOR | $150 | 2026-11-04
     @Override
     public String toString() {
-        return String.format("Ticket #%d | %s | %s | %s | $%,d | %s",
-                id, eventName, buyerName, section, price, purchaseDate);
+        return String.format("Ticket #%d | Event #%d | %s | %s | $%,d | %s",
+                id, eventId, buyerName, section, price, purchaseDate);
     }
 }
