@@ -5,7 +5,8 @@ public class Main {
     // Add each new Department subclass here
     private static final List<Department> DEPARTMENTS = List.of(
             new TalentDepartment(),
-            new Ticketing()
+            new Ticketing(),
+            new LiveEvents()
     );
 
     public static void main(String[] args) {
