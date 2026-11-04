@@ -7,7 +7,7 @@ public class MedicalDepartment extends Department {
 
     private static final MedicalDepartment INSTANCE = new MedicalDepartment();
     private static Map<Integer, List<Injury>> wrestlerInjuries = null;
-    private static final String CSV_FILE_PATH = "src/data/medical_records.txt";
+    private static final String CSV_FILE_PATH = "Data/medical_records.txt";
 
     // Private constructor matching the pattern of other departments
     private MedicalDepartment() {
@@ -186,6 +186,7 @@ public class MedicalDepartment extends Department {
 
         syncWrestlerStatus(wrestler);
         saveLogToCSV();
+        saveWrestler(wrestler);
     }
 
     public static void clearInjury(Wrestler wrestler, int injuryIndex) {
@@ -199,42 +200,51 @@ public class MedicalDepartment extends Department {
             
             syncWrestlerStatus(wrestler);
             saveLogToCSV();
-            
-            // Sync database files since wrestler status changed
-            try {
-                List<Wrestler> allWrestlers = Wrestler.loadAll();
-                for (int i = 0; i < allWrestlers.size(); i++) {
-                    if (allWrestlers.get(i).getId() == wrestler.getId()) {
-                        allWrestlers.set(i, wrestler);
-                        break;
-                    }
+        }
+    }
+
+    // Writes this wrestler's new status and clearance back to Wrestlers.txt
+    private static void saveWrestler(Wrestler wrestler) {
+        try {
+            List<Wrestler> allWrestlers = Wrestler.loadAll();
+            for (int i = 0; i < allWrestlers.size(); i++) {
+                if (allWrestlers.get(i).getId() == wrestler.getId()) {
+                    allWrestlers.set(i, wrestler);
+                    break;
                 }
-                Wrestler.saveAll(allWrestlers);
-            } catch (IOException e) {
-                System.out.println("Medical could not persist state to Wrestlers database: " + e.getMessage());
             }
+            Wrestler.saveAll(allWrestlers);
+        } catch (IOException e) {
+            System.out.println("Medical could not persist state to Wrestlers database: " + e.getMessage());
         }
     }
 
     public static void syncWrestlerStatus(Wrestler wrestler) {
-    ensureLogIsLoaded();
+        ensureLogIsLoaded();
 
-    List<Injury> injuries = wrestlerInjuries.get(wrestler.getId());
-    if (injuries != null && !injuries.isEmpty()) {
-        for (Injury injury : injuries) {
-            // If even one injury is still active, they fail medical clearance
-            if (injury.isInjured()) {
-                wrestler.setStatus(Wrestler.Status.INJURED);
-                wrestler.setMedicalClearance(false); // Map to the new main property
-                return; 
+        List<Injury> injuries = wrestlerInjuries.get(wrestler.getId());
+        boolean currentlyInjured = false;
+
+        if (injuries != null && !injuries.isEmpty()) {
+            for (Injury injury : injuries) {
+                if (injury.isInjured()) {
+                    currentlyInjured = true;
+                    break; // One active injury is enough to bench them
+                }
             }
         }
+
+        if (currentlyInjured) {
+            wrestler.setStatus(Wrestler.Status.INJURED);
+            wrestler.setMedicalClearance(false);
+        } else {
+            wrestler.setStatus(Wrestler.Status.ACTIVE);
+            wrestler.setMedicalClearance(true);
+        }
+
+        saveWrestler(wrestler);
     }
-    
-    // If they have no injuries or all historical injuries are recovered
-    wrestler.setStatus(Wrestler.Status.ACTIVE);
-    wrestler.setMedicalClearance(true); // Map to the new main property
-}
+
 
    /**
     * Retrieves the complete injury history for a specific wrestler.
