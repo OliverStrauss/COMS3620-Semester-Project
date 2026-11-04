@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +92,16 @@ public class Contract {
             if (c.getId() == id) return c;
         }
         return null;
+    }
+   
+
+    // Rewrites the whole file. Use after changing contracts from loadAll()
+    public static void saveAll(List<Contract> contracts) throws IOException {
+        List<List<Object>> rows = new ArrayList<>();
+        for (Contract c : contracts) {
+            rows.add(c.toRow());
+        }
+        CsvWriter.writeAll(FILE, rows);
     }
 
     // True if this wrestler has a contract active on the given date
