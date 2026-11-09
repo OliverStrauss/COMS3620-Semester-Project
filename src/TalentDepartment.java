@@ -1,16 +1,16 @@
-import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 
+// UI for Talent Relations: asks for input and prints results. TalentController does the work.
 public class TalentDepartment extends Department {
-   
+    private final TalentController controller = new TalentController();
+
     //Wrestler  = {id(int), legalName(String), ringName(String), brand(Enum), status(Enum)}
 
     public TalentDepartment() {
-      
+
         super("Talent Relations");
     }
 
@@ -49,7 +49,7 @@ public class TalentDepartment extends Department {
             case 4 -> renewContract(in);
             case 5 -> createContract(in);
             case 6 -> viewContracts(in);
-             
+
         }
     }
 
@@ -61,17 +61,12 @@ public class TalentDepartment extends Department {
         String legalName = askText(in,"Enter wrestlers legal name ","Jonny da");
         String stageName = askText(in,"Enter wrestlers Stage name ","Wrestler");
         Wrestler.Brand brand = askBrand(in);
-        Wrestler.Status status = Wrestler.Status.ACTIVE;
-        saveNewWrestler(legalName,stageName,brand,status);
-
-
-
-
+        System.out.println(controller.signWrestler(legalName, stageName, brand));
     }
 
     private void createContract(Scanner in) {
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID: ", null));
-        Wrestler wrestler = Wrestler.findById(wrestlerId);
+        Wrestler wrestler = controller.getWrestler(wrestlerId);
         if (wrestler == null) {
             System.out.println("No wrestler with ID " + wrestlerId + ".");
             return;
@@ -81,17 +76,14 @@ public class TalentDepartment extends Department {
         long salary = askPositiveLong(in, "Yearly salary: ", null);
         LocalDate start = askDate(in, "Start date (YYYY-MM-DD, enter for today): ", LocalDate.now());
         LocalDate end = askEndDate(in, start);
-        if (saveNewContract(wrestlerId, salary, start, end, "Created")) {
-            reactivate(wrestlerId);
-        }
+        System.out.println(controller.createContract(wrestlerId, salary, start, end));
     }
 
-    // Renewing keeps the old contract as history and adds a new one after it
     private void renewContract(Scanner in) {
         System.out.println("Choose ID of contract you want to renew");
         int contractChoice = Math.toIntExact(askPositiveLong(in, "Contract ID: ", null));
 
-        Contract chosenContract = Contract.findById(contractChoice);
+        Contract chosenContract = controller.getContract(contractChoice);
         if (chosenContract == null) {
             System.out.println("No contract with ID " + contractChoice + ".");
             return;
@@ -106,24 +98,7 @@ public class TalentDepartment extends Department {
                 "New start date (YYYY-MM-DD, enter for " + chosenContract.getEndDate() + "): ",
                 chosenContract.getEndDate());
         LocalDate end = askEndDate(in, start);
-        if (saveNewContract(chosenContract.getWrestlerId(), salary, start, end, "Renewed as")) {
-            reactivate(chosenContract.getWrestlerId());
-        }
-    }
-
-    // Re-signing a released wrestler brings them back as ACTIVE, or INJURED if Medical hasn't cleared them
-    private void reactivate(int wrestlerId) {
-        List<Wrestler> wrestlers = Wrestler.loadAll();
-        for (Wrestler w : wrestlers) {
-            if (w.getId() != wrestlerId || w.getStatus() != Wrestler.Status.RELEASED) continue;
-            w.setStatus(w.hasMedicalClearance() ? Wrestler.Status.ACTIVE : Wrestler.Status.INJURED);
-            try {
-                Wrestler.saveAll(wrestlers);
-                System.out.println(w.getRingName() + " is " + w.getStatus() + " again.");
-            } catch (IOException e) {
-                System.out.println("Could not save wrestler: " + e.getMessage());
-            }
-        }
+        System.out.println(controller.renewContract(contractChoice, salary, start, end));
     }
 
     // Asks until the end date is after start
@@ -136,35 +111,8 @@ public class TalentDepartment extends Department {
         return end;
     }
 
-    // True if the contract was saved
-    private boolean saveNewContract(int wrestlerId, long salary, LocalDate start, LocalDate end, String verb) {
-        // Get the ID last, so bad input never uses one up
-        Contract contract = new Contract(IdGenerator.nextId(Contract.FILE), wrestlerId, salary, start, end);
-        try {
-            CsvWriter.appendRow(Contract.FILE, contract.toRow());
-            System.out.println(verb + " " + contract);
-            return true;
-        } catch (IOException e) {
-            System.out.println("Could not save contract: " + e.getMessage());
-            return false;
-        }
-    }
-
-    private void saveNewWrestler(String legalName, String stageName, Wrestler.Brand brand, Wrestler.Status status) {
-    // Get the ID last, so bad input never uses one up
-    Wrestler wrestler = new Wrestler(IdGenerator.nextId(Wrestler.FILE), legalName, stageName, brand, status, true); // new signings start medically cleared
-    try {
-        CsvWriter.appendRow(Wrestler.FILE, wrestler.toRow());
-        System.out.println("Created " + wrestler);
-    } catch (IOException e) {
-        System.out.println("Could not save wrestler: " + e.getMessage());
-    }
-    }
-
-
-
     private void viewContracts(Scanner in) {
-        List<Contract> contracts = Contract.loadAll();
+        List<Contract> contracts = controller.getContracts();
         if (contracts.isEmpty()) {
             System.out.println("No contracts yet.");
         }
@@ -174,7 +122,7 @@ public class TalentDepartment extends Department {
     }
 
     private void viewWrestlers(Scanner in) {
-        List<Wrestler> wrestlers = Wrestler.loadAll();
+        List<Wrestler> wrestlers = controller.getWrestlers();
         if (wrestlers.isEmpty()) {
             System.out.println("No wrestlers yet.");
         }
@@ -183,21 +131,14 @@ public class TalentDepartment extends Department {
         }
     }
 
-    // Releasing keeps the wrestler in the file as RELEASED, so history isn't lost
     private void releaseWrestler(Scanner in) {
-        List<Wrestler> wrestlers = Wrestler.loadAll();
-        if (wrestlers.isEmpty()) {
+        if (controller.getWrestlers().isEmpty()) {
             System.out.println("No wrestlers to release.");
             return;
         }
 
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID to release: ", null));
-        // Edit the wrestler from this list, so saveAll writes the change back
-        Wrestler wrestler = null;
-        for (Wrestler w : wrestlers) {
-            if (w.getId() == wrestlerId) wrestler = w;
-        }
-        if (wrestler == null) {
+        if (controller.getWrestler(wrestlerId) == null) {
             System.out.println("No wrestler with ID " + wrestlerId + ".");
             return;
         }
@@ -205,96 +146,34 @@ public class TalentDepartment extends Department {
         String choice = askOption(in, "Release",
                 new String[]{"Wrestler only", "Contract only", "Both"});
         if (!choice.equals("Contract only")) {
-            if (wrestler.getStatus() == Wrestler.Status.RELEASED) {
-                System.out.println(wrestler.getRingName() + " is already released.");
-            } else {
-                wrestler.setStatus(Wrestler.Status.RELEASED);
-                try {
-                    Wrestler.saveAll(wrestlers);
-                    System.out.println("Released " + wrestler.getRingName() + ".");
-                } catch (IOException e) {
-                    System.out.println("Could not save wrestler: " + e.getMessage());
-                }
-            }
+            System.out.println(controller.releaseWrestler(wrestlerId));
         }
         if (!choice.equals("Wrestler only")) {
-            endContracts(wrestlerId, LocalDate.now());
+            System.out.println(controller.endContracts(wrestlerId));
         }
     }
 
-    // Ends this wrestler's contracts on the given date. Contracts that haven't started yet are dropped
-    private void endContracts(int wrestlerId, LocalDate date) {
-        List<Contract> kept = new ArrayList<>();
-        int ended = 0;
-        for (Contract c : Contract.loadAll()) {
-            if (c.getWrestlerId() != wrestlerId || !c.getEndDate().isAfter(date)) {
-                kept.add(c); // someone else's, or already over
-            } else {
-                ended++;
-                if (!c.getStartDate().isAfter(date)) {
-                    kept.add(new Contract(c.getId(), wrestlerId, c.getYearlySalary(), c.getStartDate(), date));
-                }
-            }
-        }
-        if (ended == 0) {
-            System.out.println("No running contracts for wrestler #" + wrestlerId + ".");
-            return;
-        }
-        try {
-            Contract.saveAll(kept);
-            System.out.println("Ended " + ended + " contract(s) for wrestler #" + wrestlerId + ".");
-        } catch (IOException e) {
-            System.out.println("Could not save contracts: " + e.getMessage());
-        }
-    }
-
-    // Moves an NXT wrestler up to a main roster brand
     private void promoteToMainRoster(Scanner in) {
-        List<Wrestler> wrestlers = Wrestler.loadAll();
-        boolean anyNxt = false;
-        for (Wrestler w : wrestlers) {
-            if (!w.getBrand().isMainRoster()) {
-                System.out.println(w);
-                anyNxt = true;
-            }
-        }
-        if (!anyNxt) {
+        List<Wrestler> nxt = controller.getNxtWrestlers();
+        if (nxt.isEmpty()) {
             System.out.println("No NXT wrestlers to promote.");
             return;
         }
+        for (Wrestler w : nxt) {
+            System.out.println(w);
+        }
 
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID to promote: ", null));
-        // Edit the wrestler from this list, so saveAll writes the change back
-        Wrestler wrestler = null;
-        for (Wrestler w : wrestlers) {
-            if (w.getId() == wrestlerId) wrestler = w;
-        }
-        if (wrestler == null) {
-            System.out.println("No wrestler with ID " + wrestlerId + ".");
-            return;
-        }
-        if (wrestler.getBrand().isMainRoster()) {
-            System.out.println(wrestler.getRingName() + " is already on the main roster.");
-            return;
-        }
-        if (wrestler.getStatus() != Wrestler.Status.ACTIVE) {
-            System.out.println(wrestler.getRingName() + " is " + wrestler.getStatus() + " and can't be promoted.");
-            return;
-        }
-        if (!Contract.hasActiveContract(wrestlerId, LocalDate.now())) {
-            System.out.println(wrestler.getRingName() + " needs an active contract to be promoted.");
+        // Check before asking for a brand, so the user doesn't answer for nothing
+        String problem = controller.promotionProblem(wrestlerId);
+        if (problem != null) {
+            System.out.println(problem);
             return;
         }
 
         Wrestler.Brand brand = askOption(in, "Promote to",
                 new Wrestler.Brand[]{Wrestler.Brand.RAW, Wrestler.Brand.SMACKDOWN});
-        wrestler.setBrand(brand);
-        try {
-            Wrestler.saveAll(wrestlers);
-            System.out.println("Promoted " + wrestler.getRingName() + " to " + brand + ".");
-        } catch (IOException e) {
-            System.out.println("Could not save wrestler: " + e.getMessage());
-        }
+        System.out.println(controller.promote(wrestlerId, brand));
     }
 
     // Lists every brand as a numbered choice and asks until the user picks one
