@@ -105,6 +105,11 @@ public abstract class Department {
 
     // Lists each option as a numbered choice and asks until the user picks one
     protected static <E> E askOption(Scanner in, String label, E[] options) {
+        return options[askIndex(in, label, options)];
+    }
+
+    // Same as askOption, but returns the 0-based index of the pick. Handy for menus built from text
+    protected static int askIndex(Scanner in, String label, Object[] options) {
         while (true) {
             System.out.println(label + ":");
             for (int i = 0; i < options.length; i++) {
@@ -112,7 +117,7 @@ public abstract class Department {
             }
             System.out.print("Pick a number: ");
             int choice = parseChoice(in.nextLine().trim(), options.length);
-            if (choice >= 0) return options[choice];
+            if (choice >= 0) return choice;
             System.out.println("Invalid choice.");
         }
     }
