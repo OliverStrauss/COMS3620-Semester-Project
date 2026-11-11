@@ -4,7 +4,7 @@
 4,Darius Cole,Dark Horse Darius,RAW,ACTIVE,true
 5,Sofia Ramirez,La Tormenta,SMACKDOWN,ACTIVE,true
 6,Grant Mercer,The Iron Giant,RAW,ACTIVE,true
-7,Priya Nair,Priya the Phoenix,NXT,ACTIVE,true
+7,Priya Nair,Priya the Phoenix,RAW,ACTIVE,true
 8,Tyler Brooks,Trailblazer Tyler,NXT,INJURED,false
 9,Kenji Watanabe,The Silent Storm,SMACKDOWN,ACTIVE,true
 10,Nadia Volkova,The Ice Queen,RAW,ACTIVE,true
