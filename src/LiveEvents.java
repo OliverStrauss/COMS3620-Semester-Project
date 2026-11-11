@@ -31,9 +31,10 @@ public class LiveEvents extends Department {
         String name = askText(in, "Event name: ", null);
         Event.Type type = askOption(in, "Type", Event.Type.values());
         Wrestler.Brand brand = askOption(in, "Brand", Wrestler.Brand.values());
+        Integer showId = type == Event.Type.WEEKLY_TV ? askShowId(in, brand) : null;
         LocalDate date = askDateNotPast(in, "Date (YYYY-MM-DD): ", null);
         String city = askText(in, "City: ", null);
-        planEvent(in, null, name, type, brand, date, city);
+        planEvent(in, null, name, type, brand, showId, date, city);
     }
 
     private void resumeDraft(Scanner in) {
@@ -52,12 +53,14 @@ public class LiveEvents extends Department {
             System.out.println("This draft's date has passed.");
             date = askDateNotPast(in, "New date (YYYY-MM-DD): ", null);
         }
-        planEvent(in, draft, draft.getName(), draft.getType(), draft.getBrand(), date, draft.getCity());
+        Integer showId = draft.getShowId();
+        if (showId == null && draft.getType() == Event.Type.WEEKLY_TV) showId = askShowId(in, draft.getBrand());
+        planEvent(in, draft, draft.getName(), draft.getType(), draft.getBrand(), showId, date, draft.getCity());
     }
 
     // draft is null for a new event
     private void planEvent(Scanner in, Event draft, String name, Event.Type type, Wrestler.Brand brand,
-                           LocalDate date, String city) {
+                           Integer showId, LocalDate date, String city) {
         List<Integer> rejected = new ArrayList<>();
 
         while (true) {
@@ -74,7 +77,7 @@ public class LiveEvents extends Department {
                 return;
             }
             if (input.equals("draft")) {
-                saveEvent(draft, name, type, brand, date, city, 0, 0, Event.Status.DRAFT);
+                saveEvent(draft, name, type, brand, date, city, 0, showId, 0, Event.Status.DRAFT);
                 return;
             }
             if (input.equals("add")) {
@@ -118,9 +121,22 @@ public class LiveEvents extends Department {
 
             long cost = venue.getRentalPrice();
             Event.Status status = cost > type.getBudgetCents() ? Event.Status.PENDING_APPROVAL : Event.Status.SCHEDULED;
-            saveEvent(draft, name, type, brand, date, venue.getLocation(), venue.getId(), cost, status);
+            saveEvent(draft, name, type, brand, date, venue.getLocation(), venue.getId(), showId, cost, status);
             return;
         }
+    }
+
+    // The ID of the brand's TV show this event tapes, or null if the brand has no shows
+    private Integer askShowId(Scanner in, Wrestler.Brand brand) {
+        List<Show> shows = new ArrayList<>();
+        for (Show s : Show.loadAll()) {
+            if (s.getBrand() == brand) shows.add(s);
+        }
+        if (shows.isEmpty()) {
+            System.out.println(brand + " has no TV shows, so this event won't be linked to one.");
+            return null;
+        }
+        return askOption(in, "Show", shows.toArray(new Show[0])).getId();
     }
 
     private void addVenue(Scanner in, String city, int minCapacity) {
@@ -143,9 +159,8 @@ public class LiveEvents extends Department {
 
     // A resumed draft keeps its ID and is replaced in the file
     private void saveEvent(Event draft, String name, Event.Type type, Wrestler.Brand brand, LocalDate date, String city,
-                           int venueId, long cost, Event.Status status) {
+                           int venueId, Integer showId, long cost, Event.Status status) {
         int id = draft == null ? IdGenerator.nextId(Event.FILE) : draft.getId();
-        Integer showId = draft == null ? null : draft.getShowId();
         Event event = new Event(id, name, type, brand, date, city, venueId, showId, cost, status);
         try {
             if (draft == null) {
@@ -219,19 +234,6 @@ public class LiveEvents extends Department {
             if (input.equals("y") || input.equals("yes")) return true;
             if (input.equals("n") || input.equals("no")) return false;
             System.out.println("Please enter y or n.");
-        }
-    }
-
-    private <E> E askOption(Scanner in, String label, E[] options) {
-        while (true) {
-            System.out.println(label + ":");
-            for (int i = 0; i < options.length; i++) {
-                System.out.println("  " + (i + 1) + ". " + options[i]);
-            }
-            System.out.print("Pick a number: ");
-            int choice = parseChoice(in.nextLine().trim(), options.length);
-            if (choice >= 0) return options[choice];
-            System.out.println("Invalid choice.");
         }
     }
 }

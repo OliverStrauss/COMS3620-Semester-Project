@@ -25,8 +25,9 @@ public class Contract {
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start and end dates are required");
         }
-        if (!endDate.isAfter(startDate)) {
-            throw new IllegalArgumentException("End date must be after start date");
+        // Equal dates are allowed: a contract released the day it starts ends that same day
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("End date can't be before start date");
         }
         this.id = id;
         this.wrestlerId = wrestlerId;

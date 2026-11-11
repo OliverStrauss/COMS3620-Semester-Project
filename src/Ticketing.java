@@ -25,19 +25,28 @@ public class Ticketing extends Department {
     }
 
     private void sellTicket(Scanner in) {
-        String eventName = askText(in, "Event name: ", null);
+        // Only scheduled, upcoming events can sell tickets
+        List<Event> onSale = new ArrayList<>();
+        for (Event e : Event.loadAll()) {
+            if (e.getStatus() == Event.Status.SCHEDULED && e.isUpcoming()) onSale.add(e);
+        }
+        if (onSale.isEmpty()) {
+            System.out.println("No scheduled upcoming events.");
+            return;
+        }
+        Event event = askOption(in, "Event", onSale.toArray(new Event[0]));
 
         // Only sections with seats left get offered
         List<Ticket.Section> openSections = new ArrayList<>();
         for (Ticket.Section s : Ticket.Section.values()) {
-            if (Ticket.seatsLeft(eventName, s) > 0) openSections.add(s);
+            if (Ticket.seatsLeft(event, s) > 0) openSections.add(s);
         }
         if (openSections.isEmpty()) {
-            System.out.println(eventName + " is sold out.");
+            System.out.println(event.getName() + " is sold out.");
             return;
         }
 
-        Ticket.Section section = askSection(in, eventName, openSections);
+        Ticket.Section section = askSection(in, event, openSections);
         String buyerName = askText(in, "Buyer name: ", null);
 
         String confirm = askText(in, "Sell " + section + " ticket to " + buyerName
@@ -46,12 +55,12 @@ public class Ticketing extends Department {
             System.out.println("Sale cancelled.");
             return;
         }
-        saveNewTicket(eventName, buyerName, section);
+        saveNewTicket(event.getId(), buyerName, section);
     }
 
-    private void saveNewTicket(String eventName, String buyerName, Ticket.Section section) {
+    private void saveNewTicket(int eventId, String buyerName, Ticket.Section section) {
         // Get the ID last, so bad input never uses one up
-        Ticket ticket = new Ticket(IdGenerator.nextId(Ticket.FILE), eventName, buyerName, section,
+        Ticket ticket = new Ticket(IdGenerator.nextId(Ticket.FILE), eventId, buyerName, section,
                 section.getPrice(), LocalDate.now());
         try {
             CsvWriter.appendRow(Ticket.FILE, ticket.toRow());
@@ -72,13 +81,13 @@ public class Ticketing extends Department {
     }
 
     // Lists each open section as a numbered choice and asks until the user picks one
-    private Ticket.Section askSection(Scanner in, String eventName, List<Ticket.Section> sections) {
+    private Ticket.Section askSection(Scanner in, Event event, List<Ticket.Section> sections) {
         while (true) {
             System.out.println("Section:");
             for (int i = 0; i < sections.size(); i++) {
                 Ticket.Section s = sections.get(i);
                 System.out.println("  " + (i + 1) + ". " + s + " | $" + s.getPrice()
-                        + " | Seats left: " + Ticket.seatsLeft(eventName, s));
+                        + " | Seats left: " + Ticket.seatsLeft(event, s));
             }
             System.out.print("Pick a number: ");
             int choice = parseChoice(in.nextLine().trim(), sections.size());

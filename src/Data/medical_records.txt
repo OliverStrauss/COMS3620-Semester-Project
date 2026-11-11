@@ -1,0 +1,9 @@
+1,Test injury,false,2026-11-03,2026-11-03
+2,Concussion,false,2026-06-14,2026-07-05
+4,Torn Rotator Cuff,false,2026-10-12,2026-11-04
+4,Bruised Ribs,false,2026-03-03,2026-03-24
+5,Broken Nose,false,2026-08-02,2026-08-20
+6,Knee Sprain,false,2025-12-10,2026-01-28
+8,Sprained Ankle,true,2026-10-30,
+10,Shoulder Strain,false,2026-10-01,2026-10-15
+11,Herniated Disc,true,2026-09-20,

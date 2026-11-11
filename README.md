@@ -58,3 +58,22 @@ Ticket.java
 | Jake |TV events|
 | Alex |Ticketing|
 | Shea | Medical |
+
+
+# Iteration 2
+
+**Due:** Wednesday, Nov 14 in class
+
+### What We Need
+
+
+1 use case per person:
+
+| Member | Use Case |
+|---|---|
+| Oliver ||
+| Caleb ||
+| Jake ||
+| Alex ||
+| Shea ||
+

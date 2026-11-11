@@ -111,15 +111,15 @@ public class TalentDepartment extends Department {
         }
     }
 
-    // Re-signing a released wrestler brings them back as ACTIVE
+    // Re-signing a released wrestler brings them back as ACTIVE, or INJURED if Medical hasn't cleared them
     private void reactivate(int wrestlerId) {
         List<Wrestler> wrestlers = Wrestler.loadAll();
         for (Wrestler w : wrestlers) {
             if (w.getId() != wrestlerId || w.getStatus() != Wrestler.Status.RELEASED) continue;
-            w.setStatus(Wrestler.Status.ACTIVE);
+            w.setStatus(w.hasMedicalClearance() ? Wrestler.Status.ACTIVE : Wrestler.Status.INJURED);
             try {
                 Wrestler.saveAll(wrestlers);
-                System.out.println(w.getRingName() + " is ACTIVE again.");
+                System.out.println(w.getRingName() + " is " + w.getStatus() + " again.");
             } catch (IOException e) {
                 System.out.println("Could not save wrestler: " + e.getMessage());
             }
@@ -231,7 +231,7 @@ public class TalentDepartment extends Department {
                 kept.add(c); // someone else's, or already over
             } else {
                 ended++;
-                if (c.getStartDate().isBefore(date)) {
+                if (!c.getStartDate().isAfter(date)) {
                     kept.add(new Contract(c.getId(), wrestlerId, c.getYearlySalary(), c.getStartDate(), date));
                 }
             }
@@ -305,20 +305,6 @@ public class TalentDepartment extends Department {
     // Lists every status as a numbered choice and asks until the user picks one
     private Wrestler.Status askStatus(Scanner in) {
         return askOption(in, "Status", Wrestler.Status.values());
-    }
-
-    // Shared by askBrand and askStatus: works for any enum's values()
-    private <E> E askOption(Scanner in, String label, E[] options) {
-        while (true) {
-            System.out.println(label + ":");
-            for (int i = 0; i < options.length; i++) {
-                System.out.println("  " + (i + 1) + ". " + options[i]);
-            }
-            System.out.print("Pick a number: ");
-            int choice = parseChoice(in.nextLine().trim(), options.length);
-            if (choice >= 0) return options[choice];
-            System.out.println("Invalid choice.");
-        }
     }
 
 }
