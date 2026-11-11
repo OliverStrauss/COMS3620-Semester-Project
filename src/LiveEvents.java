@@ -14,7 +14,7 @@ public class LiveEvents extends Department {
 
     @Override
     protected List<String> getUseCases() {
-        return List.of("Create Live Event", "Review Pending Events (Finance)", "View Events");
+        return List.of("Create Live Event", "Review Pending Events (Finance)", "View Events", "Resume Draft");
     }
 
     @Override
@@ -23,6 +23,7 @@ public class LiveEvents extends Department {
             case 0 -> createLiveEvent(in);
             case 1 -> reviewPendingEvents(in);
             case 2 -> viewEvents();
+            case 3 -> resumeDraft(in);
         }
     }
 
@@ -32,6 +33,31 @@ public class LiveEvents extends Department {
         Wrestler.Brand brand = askOption(in, "Brand", Wrestler.Brand.values());
         LocalDate date = askDateNotPast(in, "Date (YYYY-MM-DD): ", null);
         String city = askText(in, "City: ", null);
+        planEvent(in, null, name, type, brand, date, city);
+    }
+
+    private void resumeDraft(Scanner in) {
+        List<Event> drafts = new ArrayList<>();
+        for (Event e : Event.loadAll()) {
+            if (e.getStatus() == Event.Status.DRAFT) drafts.add(e);
+        }
+        if (drafts.isEmpty()) {
+            System.out.println("No drafts to resume.");
+            return;
+        }
+
+        Event draft = askOption(in, "Drafts", drafts.toArray(new Event[0]));
+        LocalDate date = draft.getDate();
+        if (draft.hasPassed()) {
+            System.out.println("This draft's date has passed.");
+            date = askDateNotPast(in, "New date (YYYY-MM-DD): ", null);
+        }
+        planEvent(in, draft, draft.getName(), draft.getType(), draft.getBrand(), date, draft.getCity());
+    }
+
+    // draft is null for a new event
+    private void planEvent(Scanner in, Event draft, String name, Event.Type type, Wrestler.Brand brand,
+                           LocalDate date, String city) {
         List<Integer> rejected = new ArrayList<>();
 
         while (true) {
@@ -48,7 +74,7 @@ public class LiveEvents extends Department {
                 return;
             }
             if (input.equals("draft")) {
-                saveNewEvent(name, type, brand, date, city, 0, 0, Event.Status.DRAFT);
+                saveEvent(draft, name, type, brand, date, city, 0, 0, Event.Status.DRAFT);
                 return;
             }
             if (input.equals("add")) {
@@ -92,7 +118,7 @@ public class LiveEvents extends Department {
 
             long cost = venue.getRentalPrice();
             Event.Status status = cost > type.getBudgetCents() ? Event.Status.PENDING_APPROVAL : Event.Status.SCHEDULED;
-            saveNewEvent(name, type, brand, date, venue.getLocation(), venue.getId(), cost, status);
+            saveEvent(draft, name, type, brand, date, venue.getLocation(), venue.getId(), cost, status);
             return;
         }
     }
@@ -115,11 +141,20 @@ public class LiveEvents extends Department {
         }
     }
 
-    private void saveNewEvent(String name, Event.Type type, Wrestler.Brand brand, LocalDate date, String city,
-                              int venueId, long cost, Event.Status status) {
-        Event event = new Event(IdGenerator.nextId(Event.FILE), name, type, brand, date, city, venueId, null, cost, status);
+    // A resumed draft keeps its ID and is replaced in the file
+    private void saveEvent(Event draft, String name, Event.Type type, Wrestler.Brand brand, LocalDate date, String city,
+                           int venueId, long cost, Event.Status status) {
+        int id = draft == null ? IdGenerator.nextId(Event.FILE) : draft.getId();
+        Integer showId = draft == null ? null : draft.getShowId();
+        Event event = new Event(id, name, type, brand, date, city, venueId, showId, cost, status);
         try {
-            CsvWriter.appendRow(Event.FILE, event.toRow());
+            if (draft == null) {
+                CsvWriter.appendRow(Event.FILE, event.toRow());
+            } else {
+                List<Event> events = Event.loadAll();
+                events.replaceAll(e -> e.getId() == id ? event : e);
+                Event.saveAll(events);
+            }
             System.out.println("Saved " + event);
             if (status == Event.Status.SCHEDULED) notifyDepartments(event);
             if (status == Event.Status.PENDING_APPROVAL) System.out.println("Over budget. Routed to the finance manager.");
