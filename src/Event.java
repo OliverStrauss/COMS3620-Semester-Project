@@ -17,16 +17,22 @@ public class Event {
     public static final String FILE = "Data/Events.txt";
 
     public enum Type {
-        WEEKLY_TV(8000, 6_500_000),
-        PREMIUM_LIVE_EVENT(15000, 10_000_000),
-        HOUSE_SHOW(2000, 1_000_000);
+        WEEKLY_TV(8000, 6_500_000, 6),
+        PREMIUM_LIVE_EVENT(15000, 10_000_000, 6),
+        HOUSE_SHOW(2000, 1_000_000, 8);
 
         private final int minCapacity;
         private final long budgetCents;
+        private final int maxMatches; // card limit, used by Creative's Book Match
 
-        Type(int minCapacity, long budgetCents) {
+        Type(int minCapacity, long budgetCents, int maxMatches) {
             this.minCapacity = minCapacity;
             this.budgetCents = budgetCents;
+            this.maxMatches = maxMatches;
+        }
+
+        public int getMaxMatches() {
+            return maxMatches;
         }
 
         public int getMinCapacity() {
@@ -73,6 +79,14 @@ public class Event {
         return name;
     }
 
+    public Type getType() {
+        return type;
+    }
+
+    public Wrestler.Brand getBrand() {
+        return brand;
+    }
+
     public LocalDate getDate() {
         return date;
     }
@@ -106,6 +120,27 @@ public class Event {
         status = Status.DRAFT;
         venueId = 0;
         costCents = 0;
+    }
+
+    // Weekly TV and house shows only use their own brand. A main roster PLE takes RAW and SMACKDOWN;
+    // an NXT PLE stays NXT only
+    public boolean allowsBrand(Wrestler.Brand b) {
+        if (type == Type.PREMIUM_LIVE_EVENT && brand.isMainRoster()) return b.isMainRoster();
+        return b == brand;
+    }
+
+    public boolean isCardFull() {
+        return Match.forEvent(id).size() >= type.getMaxMatches();
+    }
+
+    // Upcoming SCHEDULED events, soonest first. These are the ones Creative can book matches on
+    public static List<Event> getBookable() {
+        List<Event> bookable = new ArrayList<>();
+        for (Event e : loadAll()) {
+            if (e.status == Status.SCHEDULED && e.isUpcoming()) bookable.add(e);
+        }
+        bookable.sort(Comparator.comparing(Event::getDate));
+        return bookable;
     }
 
     public static boolean brandHasEventOn(Wrestler.Brand brand, LocalDate date) {
