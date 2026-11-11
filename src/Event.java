@@ -73,8 +73,20 @@ public class Event {
         return name;
     }
 
+    public Type getType() {
+        return type;
+    }
+
+    public Wrestler.Brand getBrand() {
+        return brand;
+    }
+
     public LocalDate getDate() {
         return date;
+    }
+
+    public String getCity() {
+        return city;
     }
 
     public int getVenueId() {
