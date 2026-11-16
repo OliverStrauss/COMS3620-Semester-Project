@@ -1,6 +1,5 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -17,23 +16,11 @@ public abstract class Department {
         return name;
     }
 
-    // Command pattern: a department that lists its use cases as Command objects only overrides this.
-    // The menu below then shows and runs those commands with no switch statement
-    protected List<Command> getCommands() {
-        return List.of();
-    }
+    // Use case names, shown in menu order
+    protected abstract List<String> getUseCases();
 
-    // Use case names, shown in menu order. Comes from getCommands() unless a subclass overrides it
-    protected List<String> getUseCases() {
-        List<String> names = new ArrayList<>();
-        for (Command c : getCommands()) names.add(c.getName());
-        return names;
-    }
-
-    // Run the use case at the given 0-based index. Runs that command unless a subclass overrides it
-    protected void runUseCase(int choice, Scanner in) {
-        getCommands().get(choice).execute(in);
-    }
+    // Run the use case at the given 0-based index
+    protected abstract void runUseCase(int choice, Scanner in);
 
     public void open(Scanner in) {
         List<String> useCases = getUseCases();
