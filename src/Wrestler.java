@@ -65,6 +65,11 @@ public class Wrestler {
         return medicalClearance;
     }
 
+    // Can be put in a match: ACTIVE and cleared by Medical
+    public boolean canCompete() {
+        return status == Status.ACTIVE && medicalClearance;
+    }
+
     public void setBrand(Brand brand) {
         this.brand = brand;
     }

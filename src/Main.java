@@ -9,6 +9,7 @@ public class Main {
             new TVShows(),
 
             new TalentDepartment(),
+            new CreativeDepartment(),
             new Ticketing(),
             new LiveEvents(),
             MedicalDepartment.getInstance()
