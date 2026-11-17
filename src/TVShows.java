@@ -19,7 +19,9 @@ public class TVShows extends Department {
     @Override
     protected List<String> getUseCases() {
         return List.of("Schedule Live Broadcast",
-        "View Live Broadcasts"
+        "View Live Broadcasts",
+        "Record Broadcast Ratings",
+        "Cancel Live Broadcast"
         );
     }
 
@@ -28,6 +30,8 @@ public class TVShows extends Department {
         switch (choice) {
             case 0 -> scheduleLiveBroadcast(in);
             case 1 -> viewLiveBroadcasts(in);
+            case 2 -> recordBroadcastRatings(in);
+            case 3 -> cancelLiveBroadcast(in);
         }
     }
 
@@ -107,6 +111,163 @@ public class TVShows extends Department {
         }
         for (LiveBroadcast b : broadcasts) {
             System.out.println(b);
+        }
+    }
+
+    private void recordBroadcastRatings(Scanner in) {
+        // 1 getAwaitingRatings
+        List<LiveBroadcast> awaiting = schedule.getAwaitingRatings();
+        if (awaiting.isEmpty()) {
+            System.out.println("No broadcasts are awaiting ratings.");
+            return;
+        }
+        System.out.println("Broadcasts awaiting ratings:");
+        for (LiveBroadcast b : awaiting) {
+            System.out.println(b + " | " + showName(b));
+        }
+
+        LiveBroadcast broadcast;
+        while (true) {
+            // 2 askIdOrCancel
+            Integer id = askIdOrCancel(in, "Broadcast ID (or 'cancel'): ");
+            if (id == null) return;
+
+            // 3 findBroadcast
+            broadcast = schedule.findBroadcast(id);
+            if (broadcast == null) {
+                System.out.println("No broadcast with ID " + id + ".");
+                continue;
+            }
+
+            // 4 checkReadyForRatings
+            try {
+                schedule.checkReadyForRatings(broadcast);
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage() + " Try again.");
+                continue;
+            }
+            break;
+        }
+
+        // 5 Show.findById, getNetwork
+        Show show = Show.findById(broadcast.getShowId());
+        Network network = show.getNetwork();
+        System.out.println(show.getName() + " on " + network.getName() + ", aired "
+                + broadcast.getAirDate() + " at " + broadcast.getStartTime());
+        System.out.println(String.format("Target: %,d viewers", network.getTargetViewers()));
+
+        // 6 ask for viewers
+        Integer viewers = askIdOrCancel(in, "Viewers (or 'cancel'): ");
+        if (viewers == null) return;
+
+        // 7 recordRatings
+        try {
+            schedule.recordRatings(broadcast, viewers);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+
+        // 8 save
+        try {
+            schedule.save();
+        } catch (IOException e) {
+            // put it back the way it was so the list matches the file
+            broadcast.undoRatings();
+            System.out.println("Could not save ratings: " + e.getMessage());
+            return;
+        }
+
+        // 9 meetsTarget, percentOfTarget
+        String result = network.meetsTarget(viewers) ? "Met" : "Missed";
+        System.out.println(String.format("Recorded %,d viewers for %s. %s %s's target (%d%% of %,d).",
+                viewers, show.getName(), result, network.getName(),
+                network.percentOfTarget(viewers), network.getTargetViewers()));
+    }
+
+    private void cancelLiveBroadcast(Scanner in) {
+        // 1 getCancellable
+        List<LiveBroadcast> cancellable = schedule.getCancellable();
+        if (cancellable.isEmpty()) {
+            System.out.println("No upcoming broadcasts to cancel.");
+            return;
+        }
+        System.out.println("Upcoming broadcasts:");
+        for (LiveBroadcast b : cancellable) {
+            System.out.println(b + " | " + showName(b));
+        }
+
+        LiveBroadcast broadcast;
+        while (true) {
+            // 2 askIdOrCancel
+            Integer id = askIdOrCancel(in, "Broadcast ID (or 'cancel'): ");
+            if (id == null) return;
+
+            // 3 findBroadcast
+            broadcast = schedule.findBroadcast(id);
+            if (broadcast == null) {
+                System.out.println("No broadcast with ID " + id + ".");
+                continue;
+            }
+
+            // 4 checkCanCancel
+            try {
+                schedule.checkCanCancel(broadcast);
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage() + " Try again.");
+                continue;
+            }
+            break;
+        }
+
+        // 5 confirm
+        Show show = Show.findById(broadcast.getShowId());
+        Network network = show == null ? null : show.getNetwork();
+        System.out.println(broadcast + " | " + showName(broadcast)
+                + " on " + (network == null ? "unknown network" : network.getName()));
+        Boolean yes = askYesOrCancel(in, "Cancel this broadcast? (y/n): ");
+        if (yes == null) return;
+        if (!yes) {
+            System.out.println("Nothing was changed.");
+            return;
+        }
+
+        // 6 cancelBroadcast
+        try {
+            schedule.cancelBroadcast(broadcast);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+
+        // 7 save
+        try {
+            schedule.save();
+        } catch (IOException e) {
+            broadcast.setStatus(LiveBroadcast.BroadcastStatus.SCHEDULED); // keep the list in line with the file
+            System.out.println("Could not save: " + e.getMessage());
+            return;
+        }
+
+        // 8 done
+        System.out.println("Cancelled Broadcast #" + broadcast.getId()
+                + ". The event and time slot are free to schedule again.");
+    }
+
+    // The show's name for a broadcast, for listing
+    private String showName(LiveBroadcast b) {
+        Show show = Show.findById(b.getShowId());
+        return show == null ? "Show #" + b.getShowId() : show.getName();
+    }
+
+    // Asks until the user types y or n. Returns true/false, or null if they type 'cancel'
+    private Boolean askYesOrCancel(Scanner in, String prompt) {
+        while (true) {
+            String input = askOrCancel(in, prompt);
+            if (input == null) return null;
+            if (input.equalsIgnoreCase("y") || input.equalsIgnoreCase("yes")) return true;
+            if (input.equalsIgnoreCase("n") || input.equalsIgnoreCase("no")) return false;
+            System.out.println("Please enter y or n.");
         }
     }
 

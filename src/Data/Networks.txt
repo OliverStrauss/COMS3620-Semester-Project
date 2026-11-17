@@ -1,4 +1,4 @@
-1,Netflix
-2,USA Network
-3,The CW
-4,Peacock
+1,Netflix,2000000
+2,USA Network,1800000
+3,The CW,600000
+4,Peacock,400000
