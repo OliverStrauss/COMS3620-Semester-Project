@@ -12,7 +12,8 @@ public class Main {
             new CreativeDepartment(),
             new Ticketing(),
             new LiveEvents(),
-            MedicalDepartment.getInstance()
+            MedicalDepartment.getInstance(),
+            FinanceDepartment.getInstance()
     );
 
     public static void main(String[] args) {
