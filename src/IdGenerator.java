@@ -16,12 +16,14 @@ public class IdGenerator {
         if (!f.exists()) return 1; // CsvParser prints an error for missing files, so check first
 
         int max = 0;
-        for (ArrayList<Object> row : CsvParser.parsecsv(f)) {
-            Object first = row.get(0);
+        List<ArrayList<Object>> rows = CsvParser.parsecsv(f);
+        for (int i = 0; i < rows.size(); i++) {
+            Object first = rows.get(i).get(0);
             if (first == null) continue; // blank line
+            if (i == 0 && first instanceof String) continue; // header row, like id,name,...
             if (!(first instanceof Integer id)) {
                 // Fail loudly: skipping a bad row could hand out an ID that's already used
-                throw new IllegalStateException("Bad ID in " + path + ": " + row);
+                throw new IllegalStateException("Bad ID in " + path + ": " + rows.get(i));
             }
             max = Math.max(max, id);
         }
@@ -36,6 +38,9 @@ public class IdGenerator {
 
         CsvWriter.writeAll(path, List.of(List.of(1, "a"), List.of(5, "b"), List.of(3, "c")));
         if (nextId(path) != 6) throw new AssertionError("should be highest + 1");
+
+        CsvWriter.writeAll(path, List.of(List.of("id", "name"), List.of(2, "a")));
+        if (nextId(path) != 3) throw new AssertionError("should skip the header row");
 
         new File(path).delete();
         System.out.println("IdGenerator ok");
