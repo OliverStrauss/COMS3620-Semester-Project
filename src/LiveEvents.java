@@ -14,7 +14,7 @@ public class LiveEvents extends Department {
 
     @Override
     protected List<String> getUseCases() {
-        return List.of("Create Live Event", "Review Pending Events (Finance)", "View Events", "Resume Draft");
+        return List.of("Create Live Event", "Review Pending Events (Finance)", "View Events", "Resume Draft", "Settle Event");
     }
 
     @Override
@@ -24,6 +24,7 @@ public class LiveEvents extends Department {
             case 1 -> reviewPendingEvents(in);
             case 2 -> viewEvents();
             case 3 -> resumeDraft(in);
+            case 4 -> settleEvent(in);
         }
     }
 
@@ -182,7 +183,9 @@ public class LiveEvents extends Department {
         List<Event> events = Event.loadAll();
         List<Event> pending = new ArrayList<>();
         for (Event e : events) {
-            if (e.getStatus() == Event.Status.PENDING_APPROVAL) pending.add(e);
+            if (e.getStatus() == Event.Status.PENDING_APPROVAL || e.getStatus() == Event.Status.SETTLEMENT_PENDING) {
+                pending.add(e);
+            }
         }
         if (pending.isEmpty()) {
             System.out.println("No events pending approval.");
@@ -190,6 +193,10 @@ public class LiveEvents extends Department {
         }
 
         Event event = askOption(in, "Pending events", pending.toArray(new Event[0]));
+        if (event.getStatus() == Event.Status.SETTLEMENT_PENDING) {
+            reviewInvoice(in, events, event);
+            return;
+        }
         if (event.hasPassed()) System.out.println("This event's date has passed, so it can't be approved.");
         boolean approved = !event.hasPassed() && askYes(in, "Approve? (y/n): ");
         if (approved) {
@@ -206,6 +213,105 @@ public class LiveEvents extends Department {
         }
     }
 
+    private void settleEvent(Scanner in) {
+        List<Event> events = Event.loadAll();
+        List<Event> settleable = new ArrayList<>();
+        for (Event e : events) {
+            if (e.getStatus() == Event.Status.SCHEDULED && e.hasPassed()) settleable.add(e);
+        }
+        if (settleable.isEmpty()) {
+            System.out.println("No events to settle.");
+            return;
+        }
+
+        Event event = askOption(in, "Events to settle", settleable.toArray(new Event[0]));
+        long quote = event.getCostCents();
+        System.out.println("Quoted venue cost: " + Venue.dollars(quote));
+        long invoice = askNonNegativeLong(in, "Final invoice in dollars (enter for the quote): ", quote / 100) * 100;
+        printSettlementReport(event, invoice);
+        if (!askYes(in, "Confirm settlement? (y/n): ")) {
+            System.out.println("Nothing changed.");
+            return;
+        }
+
+        if (invoice > quote) {
+            event.holdForSettlement(invoice);
+            if (saveEvents(events)) System.out.println("The invoice is over the quote. Routed to the finance manager.");
+            return;
+        }
+        finishSettlement(events, event, invoice);
+    }
+
+    private void reviewInvoice(Scanner in, List<Event> events, Event event) {
+        printSettlementReport(event, event.getInvoiceCents());
+        if (askYes(in, "Approve the invoice? (y/n): ")) {
+            finishSettlement(events, event, event.getInvoiceCents());
+            return;
+        }
+        event.rejectInvoice();
+        if (saveEvents(events)) {
+            System.out.println("Invoice rejected. " + event.getName() + " can be settled again with a corrected invoice.");
+        }
+    }
+
+    // the bank has to cover the invoice once the ticket revenue is in
+    private void finishSettlement(List<Event> events, Event event, long invoiceCents) {
+        FinanceDepartment finance = FinanceDepartment.getInstance();
+        long revenue = event.revenueCents();
+        long balance = Math.round(finance.getCurrentBalance() * 100);
+        if (balance + revenue < invoiceCents) {
+            System.out.println("The bank is " + Venue.dollars(invoiceCents - balance - revenue)
+                + " short of the invoice. Nothing was deposited or paid.");
+            return;
+        }
+
+        if (revenue > 0) {
+            System.out.println("Deposited: " + finance.processDeposit("Ticket revenue for event #" + event.getId(), revenue / 100.0));
+        }
+        if (invoiceCents > 0) {
+            System.out.println("Paid: " + finance.processWithdrawal("Venue invoice for event #" + event.getId(), invoiceCents / 100.0));
+        }
+        event.complete(invoiceCents);
+        if (saveEvents(events)) {
+            System.out.println("Settled " + event);
+            System.out.printf("Bank balance: $%,.2f%n", finance.getCurrentBalance());
+        }
+    }
+
+    private void printSettlementReport(Event event, long invoiceCents) {
+        Venue venue = Venue.findById(event.getVenueId());
+        int capacity = venue == null ? 0 : venue.getCapacity();
+        System.out.println("\nSettlement report: " + event.getName() + " on " + event.getDate());
+        for (Ticket.Section s : Ticket.Section.values()) {
+            int seats = venue == null ? 0 : s.getCapacity(venue);
+            int sold = event.ticketsSold(s);
+            System.out.printf(" %-10s %,6d of %,6d sold (%s) | %s%n",
+                s, sold, seats, percent(sold, seats), Venue.dollars(event.revenueCents(s)));
+        }
+        System.out.printf(" %-10s %,6d of %,6d (%s)%n",
+            "Attendance", event.ticketsSold(), capacity, percent(event.ticketsSold(), capacity));
+        
+        long revenue = event.revenueCents();
+        long profit = revenue - invoiceCents;
+        System.out.println(" Ticket revenue: " + Venue.dollars(revenue));
+        System.out.println(" Venue invoice: " + Venue.dollars(invoiceCents) + " (quoted " + Venue.dollars(event.getCostCents()) + ")");
+        System.out.println(" " + (profit >= 0 ? "Profit:" : "Loss ") + "      " + Venue.dollars(Math.abs(profit)));
+    }
+
+    private String percent(int part, int whole) {
+        return whole == 0 ? "n/a" : String.format("%.1f%%", 100.0 * part / whole);
+    }
+
+    private boolean saveEvents(List<Event> events) {
+        try {
+            Event.saveAll(events);
+            return true;
+        } catch (IOException e) {
+            System.out.println("Could not save event: " + e.getMessage());
+            return false;
+        }
+    }
+    
     private void viewEvents() {
         List<Event> events = Event.loadAll();
         if (events.isEmpty()) {

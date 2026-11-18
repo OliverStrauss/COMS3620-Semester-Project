@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class Bank {
-    private static final String FILE_PATH = "src/Data/Bank.txt";
+    private static final String FILE_PATH = "Data/Bank.txt";
 
     public static double getBalance() {
         return ((Number) CsvParser.parsecsv(FILE_PATH).get(0).get(0)).doubleValue();

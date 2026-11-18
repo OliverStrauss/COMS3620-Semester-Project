@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class FinanceDepartment extends Department{
     private static final FinanceDepartment INSTANCE = new FinanceDepartment();
     private static Map<Integer, Receipt> transactionLog = null;
-    private static final String CSV_FILE_PATH = "src/Data/TransactionLog.txt";
+    private static final String CSV_FILE_PATH = "Data/TransactionLog.txt";
 
     private FinanceDepartment() {
         super("Finance Department");

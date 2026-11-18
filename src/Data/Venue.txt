@@ -1,3 +1,4 @@
+id,capacity,location,rentalCents
 1,19000,Boston,6000000
 2,10000,Chicago,3000000
 3,9000,Orlando,2500000

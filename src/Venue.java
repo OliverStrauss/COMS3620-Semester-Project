@@ -8,10 +8,11 @@ import java.util.List;
 
 /**
  * A venue has an id, a location, capacity, and rental rate.
- * Each is a line within Data/Venue.txt
+ * Each is a line within Data/Venue.txt, after the header row
  */
 public class Venue {
     public static final String FILE = "Data/Venue.txt";
+    private static final List<Object> HEADER = List.of("id", "capacity", "location", "rentalCents");
 
     private final int id;
     private final int capacity;
@@ -69,6 +70,7 @@ public class Venue {
 
     public static void saveAll(List<Venue> venues) throws IOException {
         List<List<Object>> rows = new ArrayList<>();
+        rows.add(HEADER);
         for (Venue v : venues) {
             rows.add(v.toRow());
         }
@@ -80,7 +82,7 @@ public class Venue {
         if (!new File(FILE).exists()) return venues;
 
         for (ArrayList<Object> row : CsvParser.parsecsv(FILE)) {
-            if (row.get(0) == null) continue;
+            if (row.get(0) == null || row.get(0).equals("id")) continue;
             venues.add(fromRow(row));
         }
         return venues;
