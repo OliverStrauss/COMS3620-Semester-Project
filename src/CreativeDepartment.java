@@ -10,24 +10,15 @@ import java.util.Scanner;
 public class CreativeDepartment extends Department {
     public CreativeDepartment() {
         super("Creative");
-    }
-
-    @Override
-    protected List<String> getUseCases() {
-        return List.of("Book Match", "View Matches", "View Storylines");
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> bookMatch(in);
-            case 1 -> viewMatches();
-            case 2 -> viewStorylines();
-        }
+        // Menu order. Each command calls back into this department (the receiver)
+        addCommand(new BookMatchCommand(this));
+        addCommand(new ViewMatchesCommand(this));
+        addCommand(new ViewStorylinesCommand(this));
     }
 
     // Book Match use case. Step numbers match the spec
-    private void bookMatch(Scanner in) {
+    // Package-private so BookMatchCommand can run it
+    void bookMatch(Scanner in) {
         // 2-3. Pick an upcoming scheduled event
         List<Event> events = new ArrayList<>(Event.getBookable());
         if (events.isEmpty()) {
@@ -113,7 +104,8 @@ public class CreativeDepartment extends Department {
     }
 
     // Every match, grouped by event
-    private void viewMatches() {
+    // Package-private so ViewMatchesCommand can run it
+    void viewMatches() {
         List<Match> matches = Match.loadAll();
         if (matches.isEmpty()) {
             System.out.println("No matches yet.");
@@ -131,7 +123,8 @@ public class CreativeDepartment extends Department {
         }
     }
 
-    private void viewStorylines() {
+    // Package-private so ViewStorylinesCommand can run it
+    void viewStorylines() {
         List<Storyline> storylines = Storyline.loadAll();
         if (storylines.isEmpty()) {
             System.out.println("No storylines yet.");

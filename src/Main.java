@@ -1,4 +1,6 @@
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -16,28 +18,48 @@ public class Main {
             FinanceDepartment.getInstance()
     );
 
+    // Top-level commands, looked up by every name the user can type for them
+    private static final Map<String, Command> COMMANDS = new HashMap<>();
+    static {
+        Command departments = new DepartmentsCommand();
+        Command help = new HelpCommand();
+        Command quit = new QuitCommand();
+        COMMANDS.put("departments", departments);
+        COMMANDS.put("d", departments);
+        COMMANDS.put("help", help);
+        COMMANDS.put("h", help);
+        COMMANDS.put("quit", quit);
+        COMMANDS.put("q", quit);
+        COMMANDS.put("exit", quit);
+    }
+
+    // Set to false by QuitCommand to end the main loop
+    private static boolean running = true;
+
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         clearScreen();
         System.out.println("Welcome to the WWE Management System!");
         printHelp();
 
-        while (true) {
+        while (running) {
             System.out.print("\n> ");
             if (!in.hasNextLine()) break;
-            String command = in.nextLine().trim().toLowerCase();
+            String input = in.nextLine().trim().toLowerCase();
+            if (input.isEmpty()) continue;
 
-            switch (command) {
-                case "departments", "d" -> departmentMenu(in);
-                case "help", "h" -> printHelp();
-                case "quit", "q", "exit" -> {
-                    System.out.println("Goodbye!");
-                    return;
-                }
-                case "" -> { }
-                default -> System.out.println("Unknown command: " + command + " (type 'help')");
+            Command command = COMMANDS.get(input);
+            if (command == null) {
+                System.out.println("Unknown command: " + input + " (type 'help')");
+            } else {
+                command.execute(in);
             }
         }
+    }
+
+    // Package-private so QuitCommand can end the main loop
+    static void stop() {
+        running = false;
     }
 
     private static void clearScreen() {
@@ -55,14 +77,16 @@ public class Main {
     }
 
 
-    private static void printHelp() {
+    // Package-private so HelpCommand can run it
+    static void printHelp() {
         System.out.println("Commands:");
         System.out.println("  departments (d) - list departments");
         System.out.println("  help (h)        - show this message");
         System.out.println("  quit (q)        - exit");
     }
 
-    private static void departmentMenu(Scanner in) {
+    // Package-private so DepartmentsCommand can run it
+    static void departmentMenu(Scanner in) {
         while (true) {
             clearScreen();
             System.out.println("\nDepartments:");

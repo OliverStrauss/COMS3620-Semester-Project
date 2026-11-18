@@ -10,8 +10,16 @@ public class TalentDepartment extends Department {
     //Wrestler  = {id(int), legalName(String), ringName(String), brand(Enum), status(Enum)}
 
     public TalentDepartment() {
-      
+
         super("Talent Relations");
+        // Menu order. Each command calls back into this department (the receiver)
+        addCommand(new SignWrestlerCommand(this));
+        addCommand(new ReleaseWrestlerCommand(this));
+        addCommand(new PromoteToMainRosterCommand(this));
+        addCommand(new ViewWrestlersCommand(this));
+        addCommand(new RenewContractCommand(this));
+        addCommand(new CreateContractCommand(this));
+        addCommand(new ViewContractsCommand(this));
     }
 
     /**
@@ -27,37 +35,12 @@ public class TalentDepartment extends Department {
      *  View Contracts
      */
 
-    @Override
-    protected List<String> getUseCases() {
-        return List.of("Sign Wrestler",
-        "Release Wrestler",
-        "Promote to Main Roster",
-        "View Wrestlers",
-        "Renew Contract",
-        "Create Contract",
-        "View Contracts"
-        );
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> signWrestler(in);
-            case 1 -> releaseWrestler(in);
-            case 2 -> promoteToMainRoster(in);
-            case 3 -> viewWrestlers(in);
-            case 4 -> renewContract(in);
-            case 5 -> createContract(in);
-            case 6 -> viewContracts(in);
-             
-        }
-    }
-
     /**
      * String legalName, String ringName, Brand brand, Status status) {
      */
 
-    private void signWrestler(Scanner in) {
+    // Package-private so SignWrestlerCommand can run it
+    void signWrestler(Scanner in) {
         String legalName = askText(in,"Enter wrestlers legal name ","Jonny da");
         String stageName = askText(in,"Enter wrestlers Stage name ","Wrestler");
         Wrestler.Brand brand = askBrand(in);
@@ -69,7 +52,8 @@ public class TalentDepartment extends Department {
 
     }
 
-    private void createContract(Scanner in) {
+    // Package-private so CreateContractCommand can run it
+    void createContract(Scanner in) {
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Wrestler ID: ", null));
         Wrestler wrestler = Wrestler.findById(wrestlerId);
         if (wrestler == null) {
@@ -87,7 +71,8 @@ public class TalentDepartment extends Department {
     }
 
     // Renewing keeps the old contract as history and adds a new one after it
-    private void renewContract(Scanner in) {
+    // Package-private so RenewContractCommand can run it
+    void renewContract(Scanner in) {
         System.out.println("Choose ID of contract you want to renew");
         int contractChoice = Math.toIntExact(askPositiveLong(in, "Contract ID: ", null));
 
@@ -163,7 +148,8 @@ public class TalentDepartment extends Department {
 
 
 
-    private void viewContracts(Scanner in) {
+    // Package-private so ViewContractsCommand can run it
+    void viewContracts(Scanner in) {
         List<Contract> contracts = Contract.loadAll();
         if (contracts.isEmpty()) {
             System.out.println("No contracts yet.");
@@ -173,7 +159,8 @@ public class TalentDepartment extends Department {
         }
     }
 
-    private void viewWrestlers(Scanner in) {
+    // Package-private so ViewWrestlersCommand can run it
+    void viewWrestlers(Scanner in) {
         List<Wrestler> wrestlers = Wrestler.loadAll();
         if (wrestlers.isEmpty()) {
             System.out.println("No wrestlers yet.");
@@ -184,7 +171,8 @@ public class TalentDepartment extends Department {
     }
 
     // Releasing keeps the wrestler in the file as RELEASED, so history isn't lost
-    private void releaseWrestler(Scanner in) {
+    // Package-private so ReleaseWrestlerCommand can run it
+    void releaseWrestler(Scanner in) {
         List<Wrestler> wrestlers = Wrestler.loadAll();
         if (wrestlers.isEmpty()) {
             System.out.println("No wrestlers to release.");
@@ -249,7 +237,8 @@ public class TalentDepartment extends Department {
     }
 
     // Moves an NXT wrestler up to a main roster brand
-    private void promoteToMainRoster(Scanner in) {
+    // Package-private so PromoteToMainRosterCommand can run it
+    void promoteToMainRoster(Scanner in) {
         List<Wrestler> wrestlers = Wrestler.loadAll();
         boolean anyNxt = false;
         for (Wrestler w : wrestlers) {

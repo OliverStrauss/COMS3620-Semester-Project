@@ -1,12 +1,14 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-// Base class for every department. Handles the menu loop;
-// subclasses only list their use cases and say what each one does.
+// Base class for every department, and the Invoker in the Command pattern.
+// Handles the menu loop; subclasses add one Command per use case.
 public abstract class Department {
     private final String name;
+    private final List<Command> commands = new ArrayList<>();
 
     protected Department(String name) {
         this.name = name;
@@ -16,30 +18,29 @@ public abstract class Department {
         return name;
     }
 
-    // Use case names, shown in menu order
-    protected abstract List<String> getUseCases();
+    // Adds a use case to the menu. Call in menu order
+    protected void addCommand(Command command) {
+        commands.add(command);
+    }
 
-    // Run the use case at the given 0-based index
-    protected abstract void runUseCase(int choice, Scanner in);
-
+    // Shows each command's name as a numbered menu and runs the one picked, until 'back'
     public void open(Scanner in) {
-        List<String> useCases = getUseCases();
         while (true) {
             System.out.println("\n" + name + ":");
-            for (int i = 0; i < useCases.size(); i++) {
-                System.out.println("  " + (i + 1) + ". " + useCases.get(i));
+            for (int i = 0; i < commands.size(); i++) {
+                System.out.println("  " + (i + 1) + ". " + commands.get(i).getName());
             }
             System.out.print("Pick an action number (or 'back'): ");
             if (!in.hasNextLine()) return;
             String input = in.nextLine().trim();
             if (input.equalsIgnoreCase("back") || input.equalsIgnoreCase("b")) return;
 
-            int choice = parseChoice(input, useCases.size());
+            int choice = parseChoice(input, commands.size());
             if (choice < 0) {
                 System.out.println("Invalid choice.");
                 continue;
             }
-            runUseCase(choice, in);
+            commands.get(choice).execute(in);
         }
     }
 

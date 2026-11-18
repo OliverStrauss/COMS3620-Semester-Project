@@ -12,6 +12,11 @@ public class MedicalDepartment extends Department {
     // Private constructor matching the pattern of other departments
     private MedicalDepartment() {
         super("Medical Department");
+        // Menu order. this is the singleton INSTANCE (the constructor only runs once),
+        // so every command calls back into the one MedicalDepartment
+        addCommand(new AddInjuryCommand(this));
+        addCommand(new ClearInjuryCommand(this));
+        addCommand(new ViewMedicalRecordsCommand(this));
     }
 
     public static MedicalDepartment getInstance() {
@@ -47,28 +52,10 @@ public class MedicalDepartment extends Department {
         }
     }
     
-    @Override 
-    protected List<String> getUseCases() {
-        return List.of(
-            "Add Injury",
-            "Clear Injury",
-            "View Medical Records"
-        );
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> uiAddInjury(in);
-            case 1 -> uiClearInjury(in);
-            case 2 -> uiViewMedicalRecords(in);
-            default -> System.out.println("Invalid choice.");
-        }
-    }
-
     // --- Text UI Execution Flows ---
 
-    private void uiAddInjury(Scanner in) {
+    // Package-private so AddInjuryCommand can run it
+    void uiAddInjury(Scanner in) {
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Enter Wrestler ID to report injury: ", null));
         Wrestler wrestler = Wrestler.findById(wrestlerId);
         
@@ -85,7 +72,8 @@ public class MedicalDepartment extends Department {
         System.out.println("Successfully logged injury for " + wrestler.getRingName() + ".");
     }
 
-    private void uiClearInjury(Scanner in) {
+    // Package-private so ClearInjuryCommand can run it
+    void uiClearInjury(Scanner in) {
         int wrestlerId = Math.toIntExact(askPositiveLong(in, "Enter Wrestler ID to clear an injury: ", null));
         Wrestler wrestler = Wrestler.findById(wrestlerId);
         
@@ -117,7 +105,8 @@ public class MedicalDepartment extends Department {
         System.out.println("Injury status successfully cleared. Wrestler evaluated as: " + wrestler.getStatus());
     }
 
-    private void uiViewMedicalRecords(Scanner in) {
+    // Package-private so ViewMedicalRecordsCommand can run it
+    void uiViewMedicalRecords(Scanner in) {
         System.out.println("\n=== MEDICAL RECORD VIEWER ===");
         System.out.println("Enter a specific Wrestler ID, or enter [0] to view the entire master directory.");
         int choice = Math.toIntExact(askNonNegativeLong(in, "Wrestler ID or 0: ", 0L));

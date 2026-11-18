@@ -14,28 +14,15 @@ public class TVShows extends Department {
 
     public TVShows() {
         super("TV Shows");
+        // Menu order. Each command calls back into this department (the receiver)
+        addCommand(new ScheduleLiveBroadcastCommand(this));
+        addCommand(new ViewLiveBroadcastsCommand(this));
+        addCommand(new RecordBroadcastRatingsCommand(this));
+        addCommand(new CancelLiveBroadcastCommand(this));
     }
 
-    @Override
-    protected List<String> getUseCases() {
-        return List.of("Schedule Live Broadcast",
-        "View Live Broadcasts",
-        "Record Broadcast Ratings",
-        "Cancel Live Broadcast"
-        );
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> scheduleLiveBroadcast(in);
-            case 1 -> viewLiveBroadcasts(in);
-            case 2 -> recordBroadcastRatings(in);
-            case 3 -> cancelLiveBroadcast(in);
-        }
-    }
-
-    private void scheduleLiveBroadcast(Scanner in) {
+    // Package-private so ScheduleLiveBroadcastCommand can run it
+    void scheduleLiveBroadcast(Scanner in) {
         List<Show> shows = Show.loadAll();
         if (shows.isEmpty()) {
             System.out.println("No shows yet.");
@@ -104,7 +91,8 @@ public class TVShows extends Department {
         }
     }
 
-    private void viewLiveBroadcasts(Scanner in) {
+    // Package-private so ViewLiveBroadcastsCommand can run it
+    void viewLiveBroadcasts(Scanner in) {
         List<LiveBroadcast> broadcasts = schedule.getBroadcasts();
         if (broadcasts.isEmpty()) {
             System.out.println("No live broadcasts yet.");
@@ -114,7 +102,8 @@ public class TVShows extends Department {
         }
     }
 
-    private void recordBroadcastRatings(Scanner in) {
+    // Package-private so RecordBroadcastRatingsCommand can run it
+    void recordBroadcastRatings(Scanner in) {
         // 1 getAwaitingRatings
         List<LiveBroadcast> awaiting = schedule.getAwaitingRatings();
         if (awaiting.isEmpty()) {
@@ -185,7 +174,8 @@ public class TVShows extends Department {
                 network.percentOfTarget(viewers), network.getTargetViewers()));
     }
 
-    private void cancelLiveBroadcast(Scanner in) {
+    // Package-private so CancelLiveBroadcastCommand can run it
+    void cancelLiveBroadcast(Scanner in) {
         // 1 getCancellable
         List<LiveBroadcast> cancellable = schedule.getCancellable();
         if (cancellable.isEmpty()) {

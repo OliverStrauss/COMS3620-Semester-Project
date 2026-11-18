@@ -8,27 +8,15 @@ public class Ticketing extends Department {
 
     public Ticketing() {
         super("Ticketing");
+        // Menu order. Each command calls back into this department (the receiver)
+        addCommand(new SellTicketCommand(this));
+        addCommand(new ViewTicketsCommand(this));
+        addCommand(new SetEventPriceCommand(this));
+        addCommand(new RefundTicketCommand(this));
     }
 
-    @Override
-    protected List<String> getUseCases() {
-        return List.of("Sell Ticket",
-                "View Tickets",
-                "Set Event Price",
-                "Refund Ticket");
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> sellTicket(in);
-            case 1 -> viewTickets(in);
-            case 2 -> setEventPrice(in);
-            case 3 -> refundTicket(in);
-        }
-    }
-
-    private void sellTicket(Scanner in) {
+    // Package-private so SellTicketCommand can run it
+    void sellTicket(Scanner in) {
         // Only scheduled, upcoming events can sell tickets
         List<Event> onSale = new ArrayList<>();
         for (Event e : Event.loadAll()) {
@@ -76,7 +64,8 @@ public class Ticketing extends Department {
     }
 
     // Sets a custom price for one section of one event. Tickets already sold keep their old price
-    private void setEventPrice(Scanner in) {
+    // Package-private so SetEventPriceCommand can run it
+    void setEventPrice(Scanner in) {
         List<Event> onSale = new ArrayList<>();
         for (Event e : Event.loadAll()) {
             if (e.getStatus() == Event.Status.SCHEDULED && e.isUpcoming()) onSale.add(e);
@@ -116,7 +105,8 @@ public class Ticketing extends Department {
     }
 
     // Refunds the price the buyer paid and frees the seat. Only for events that haven't happened yet
-    private void refundTicket(Scanner in) {
+    // Package-private so RefundTicketCommand can run it
+    void refundTicket(Scanner in) {
         int ticketId = Math.toIntExact(askPositiveLong(in, "Ticket ID: ", null));
         // Edit the ticket from this list, so saveAll writes the change back
         List<Ticket> tickets = Ticket.loadAll();
@@ -160,7 +150,8 @@ public class Ticketing extends Department {
         }
     }
 
-    private void viewTickets(Scanner in) {
+    // Package-private so ViewTicketsCommand can run it
+    void viewTickets(Scanner in) {
         List<Ticket> tickets = Ticket.loadAll();
         if (tickets.isEmpty()) {
             System.out.println("No tickets yet.");

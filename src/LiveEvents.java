@@ -10,24 +10,15 @@ public class LiveEvents extends Department {
 
     public LiveEvents() {
         super("Live Events");
+        // Menu order. Each command calls back into this department (the receiver)
+        addCommand(new CreateLiveEventCommand(this));
+        addCommand(new ReviewPendingEventsCommand(this));
+        addCommand(new ViewEventsCommand(this));
+        addCommand(new ResumeDraftCommand(this));
     }
 
-    @Override
-    protected List<String> getUseCases() {
-        return List.of("Create Live Event", "Review Pending Events (Finance)", "View Events", "Resume Draft");
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> createLiveEvent(in);
-            case 1 -> reviewPendingEvents(in);
-            case 2 -> viewEvents();
-            case 3 -> resumeDraft(in);
-        }
-    }
-
-    private void createLiveEvent(Scanner in) {
+    // Package-private so CreateLiveEventCommand can run it
+    void createLiveEvent(Scanner in) {
         String name = askText(in, "Event name: ", null);
         Event.Type type = askOption(in, "Type", Event.Type.values());
         Wrestler.Brand brand = askOption(in, "Brand", Wrestler.Brand.values());
@@ -37,7 +28,8 @@ public class LiveEvents extends Department {
         planEvent(in, null, name, type, brand, showId, date, city);
     }
 
-    private void resumeDraft(Scanner in) {
+    // Package-private so ResumeDraftCommand can run it
+    void resumeDraft(Scanner in) {
         List<Event> drafts = new ArrayList<>();
         for (Event e : Event.loadAll()) {
             if (e.getStatus() == Event.Status.DRAFT) drafts.add(e);
@@ -178,7 +170,8 @@ public class LiveEvents extends Department {
         }
     }
 
-    private void reviewPendingEvents(Scanner in) {
+    // Package-private so ReviewPendingEventsCommand can run it
+    void reviewPendingEvents(Scanner in) {
         List<Event> events = Event.loadAll();
         List<Event> pending = new ArrayList<>();
         for (Event e : events) {
@@ -206,7 +199,8 @@ public class LiveEvents extends Department {
         }
     }
 
-    private void viewEvents() {
+    // Package-private so ViewEventsCommand can run it
+    void viewEvents() {
         List<Event> events = Event.loadAll();
         if (events.isEmpty()) {
             System.out.println("No events yet.");

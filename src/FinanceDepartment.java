@@ -14,6 +14,13 @@ public class FinanceDepartment extends Department{
 
     private FinanceDepartment() {
         super("Finance Department");
+        // Menu order. this is the singleton INSTANCE (the constructor only runs once),
+        // so every command calls back into the one FinanceDepartment
+        addCommand(new DepositFundsCommand(this));
+        addCommand(new WithdrawFundsCommand(this));
+        addCommand(new ViewAllTransactionsCommand(this));
+        addCommand(new ViewTransactionByIdCommand(this));
+        addCommand(new LogPastTransactionCommand(this));
     }
 
     public static FinanceDepartment getInstance() {
@@ -63,32 +70,10 @@ public class FinanceDepartment extends Department{
         }
     }
 
-    @Override
-    protected List<String> getUseCases() {
-        return List.of(
-            "Deposit Funds",
-            "Withdraw Funds",
-            "View All Transactions",
-            "View Transaction by ID",
-            "Log Past Transaction"
-        );
-    }
-
-    @Override
-    protected void runUseCase(int choice, Scanner in) {
-        switch (choice) {
-            case 0 -> uiDeposit(in);
-            case 1 -> uiWithdraw(in);
-            case 2 -> uiViewAllTransactions();
-            case 3 -> uiViewTransactionById(in);
-            case 4 -> uiLogPastTransaction(in);
-            default -> System.out.println("Invalid choice.");
-        }
-    }
-
     // --- Text UI Execution Flows ---
 
-    private void uiDeposit(Scanner in) {
+    // Package-private so DepositFundsCommand can run it
+    void uiDeposit(Scanner in) {
         System.out.println("\n=== RECORD DEPOSIT ===");
         System.out.printf("Current Bank Balance: $%,.2f\n", getCurrentBalance());
 
@@ -105,7 +90,8 @@ public class FinanceDepartment extends Department{
         }
     }
 
-    private void uiWithdraw(Scanner in) {
+    // Package-private so WithdrawFundsCommand can run it
+    void uiWithdraw(Scanner in) {
         System.out.println("\n=== RECORD WITHDRAWAL ===");
         System.out.printf("Current Bank Balance: $%,.2f\n", getCurrentBalance());
 
@@ -126,7 +112,8 @@ public class FinanceDepartment extends Department{
         }
     }
 
-    private void uiViewAllTransactions() {
+    // Package-private so ViewAllTransactionsCommand can run it
+    void uiViewAllTransactions() {
         List<Receipt> allReceipts = getAllReceipts();
 
         System.out.println("\n======================================================================");
@@ -149,7 +136,8 @@ public class FinanceDepartment extends Department{
         System.out.println("======================================================================");
     }
 
-    private void uiViewTransactionById(Scanner in) {
+    // Package-private so ViewTransactionByIdCommand can run it
+    void uiViewTransactionById(Scanner in) {
         System.out.println("\n=== TRANSACTION RECEIPT LOOKUP ===");
         int id = Math.toIntExact(askPositiveLong(in, "Enter Transaction ID: ", null));
 
@@ -172,7 +160,8 @@ public class FinanceDepartment extends Department{
         System.out.println("=======================================================");
     }
 
-    private void uiLogPastTransaction(Scanner in) {
+    // Package-private so LogPastTransactionCommand can run it
+    void uiLogPastTransaction(Scanner in) {
         System.out.println("\n=== LOG PAST TRANSACTION (NO BANK UPDATE) ===");
         System.out.println("Note: This records a receipt in the log without changing the live Bank balance.");
 
